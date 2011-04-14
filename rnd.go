@@ -4,8 +4,7 @@
 
 // blame: jnml, labs.nic.cz
 
-// The mathutil package provides pseudo random number generators supplementing
-// the standard "rand" and "math" packages.
+// The mathutil package provides utilities supplementing the standard "rand" and "math" packages.
 package mathutil
 
 
