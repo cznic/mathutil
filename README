@@ -5,6 +5,5 @@ At the original site you may find also some example code and a report
 about the statistical properties of the FC PRNG:
 http://git.nic.cz/redmine/projects/gornd/repository/revisions/master/entry/nist-sts-2-1-1-report
 
-2011-06-20
-Added experimental post-receive hook. Should it work then the godocs for this package should be available at:
-http://gopkgdoc.appspot.com/
+Online godoc documentation for this package available at:
+http://gopkgdoc.appspot.com/pkg/github.com/cznic/mathutil
