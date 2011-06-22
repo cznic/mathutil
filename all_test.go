@@ -527,9 +527,9 @@ func TestNextPrime(t *testing.T) {
 
 
 func TestNextPrime2(t *testing.T) {
-	type data struct{
-		x uint32
-		y uint32
+	type data struct {
+		x  uint32
+		y  uint32
 		ok bool
 	}
 	tests := []data{
@@ -538,11 +538,11 @@ func TestNextPrime2(t *testing.T) {
 		{2, 3, true},
 		{3, 5, true},
 		{math.MaxUint32, 0, false},
-		{math.MaxUint32-1, 0, false},
-		{math.MaxUint32-2, 0, false},
-		{math.MaxUint32-3, 0, false},
-		{math.MaxUint32-4, 0, false},
-		{math.MaxUint32-5, math.MaxUint32-4, true},
+		{math.MaxUint32 - 1, 0, false},
+		{math.MaxUint32 - 2, 0, false},
+		{math.MaxUint32 - 3, 0, false},
+		{math.MaxUint32 - 4, 0, false},
+		{math.MaxUint32 - 5, math.MaxUint32 - 4, true},
 	}
 
 	for _, test := range tests {
