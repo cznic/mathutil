@@ -4,16 +4,14 @@
 
 // blame: jnml, labs.nic.cz
 
-// The mathutil package provides utilities supplementing the standard "rand" and "math" packages.
+// Package mathutil provides utilities supplementing the standard 'math' and 'rand' packages.
 package mathutil
-
 
 import (
 	"fmt"
 	"math"
 	"os"
 )
-
 
 // FC32 is a full cycle PRNG covering the 32 bit signed integer range.
 // In contrast to full cycle generators shown at e.g. http://en.wikipedia.org/wiki/Full_cycle,
@@ -36,7 +34,6 @@ type FC32 struct {
 	primes  []int64 // Ordered. ∏ primes == cycle.
 	set     []int64 // Reordered primes (magnitude order bases) according to seed.
 }
-
 
 // NewFC32 returns a newly created FC32 adjusted for the closed interval [lo, hi] or an Error if any.
 // If hq == true then trade some generation time for improved (pseudo)randomness.
@@ -94,31 +91,26 @@ func NewFC32(lo, hi int, hq bool) (r *FC32, err os.Error) {
 	return
 }
 
-
 // Cycle reports the length of the inner FCPRNG cycle.
 // Cycle is atmost the double (HQ: triple) of the generator period (hi - lo + 1).
 func (r *FC32) Cycle() int64 {
 	return r.cycle
 }
 
-
 // Next returns the first PRN after Pos.
 func (r *FC32) Next() int {
 	return r.step(1)
 }
-
 
 // Pos reports the current position within the inner cycle.
 func (r *FC32) Pos() int64 {
 	return r.pos
 }
 
-
 // Prev return the first PRN before Pos.
 func (r *FC32) Prev() int {
 	return r.step(-1)
 }
-
 
 // Seed uses the provided seed value to initialize the generator to a deterministic state.
 // A zero seed produces a "canonical" generator with worse randomness than for most non zero seeds.
@@ -139,7 +131,6 @@ func (r *FC32) Seed(seed int64) {
 	}
 }
 
-
 // Seek sets Pos to |pos| % Cycle.
 func (r *FC32) Seek(pos int64) {
 	if pos < 0 {
@@ -151,7 +142,6 @@ func (r *FC32) Seek(pos int64) {
 		r.mods[i] = int(pos % p)
 	}
 }
-
 
 func (r *FC32) step(dir int) int {
 	for { // avg loops per step: 3/2 (HQ: 2)
@@ -184,7 +174,6 @@ func (r *FC32) step(dir int) int {
 	panic("unreachable")
 }
 
-
 func delete(set []int64, i int) (y []int64) {
 	for j, v := range set {
 		if j != i {
@@ -193,7 +182,6 @@ func delete(set []int64, i int) (y []int64) {
 	}
 	return
 }
-
 
 func mix(set []int64, seed *uint64) (y []int64) {
 	for len(set) != 0 {
@@ -204,7 +192,6 @@ func mix(set []int64, seed *uint64) (y []int64) {
 	}
 	return
 }
-
 
 func rol(u uint64) (y uint64) {
 	y = u << 1

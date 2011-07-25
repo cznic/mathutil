@@ -7,11 +7,9 @@
 
 package mathutil
 
-
 import (
 	"math"
 )
-
 
 func probablyPrime(n32, a32 uint32) bool {
 	n, a := uint64(n32), uint64(a32)
@@ -42,7 +40,6 @@ func probablyPrime(n32, a32 uint32) bool {
 	return false
 }
 
-
 // IsPrimes returns true if n is prime. Typical run time is few hundred nsecs.
 //
 // http://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test#Deterministic_variants_of_the_test
@@ -64,7 +61,6 @@ func IsPrime(n uint32) bool {
 	}
 	panic("unreachable")
 }
-
 
 // NextPrime returns first prime > n and true if successful or an undefined value and false if there
 // is no next prime in the uint32 limits. Typical run time is few µsecs.

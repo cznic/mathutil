@@ -1,9 +1,5 @@
 This is a goinstall-able mirror of modified code already published at:
 http://git.nic.cz/redmine/projects/gornd/repository
 
-At the original site you may find also some example code and a report
-about the statistical properties of the FC PRNG:
-http://git.nic.cz/redmine/projects/gornd/repository/revisions/master/entry/nist-sts-2-1-1-report
-
 Online godoc documentation for this package available at:
 http://gopkgdoc.appspot.com/pkg/github.com/cznic/mathutil

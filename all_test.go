@@ -6,14 +6,12 @@
 
 package mathutil
 
-
 import (
 	"big"
 	"container/vector"
 	"math"
 	"testing"
 )
-
 
 func benchmark1eN(b *testing.B, r *FC32) {
 	b.StartTimer()
@@ -22,13 +20,11 @@ func benchmark1eN(b *testing.B, r *FC32) {
 	}
 }
 
-
 func Benchmark1e3(b *testing.B) {
 	b.StopTimer()
 	r, _ := NewFC32(0, 1e3, false)
 	benchmark1eN(b, r)
 }
-
 
 func Benchmark1e6(b *testing.B) {
 	b.StopTimer()
@@ -36,13 +32,11 @@ func Benchmark1e6(b *testing.B) {
 	benchmark1eN(b, r)
 }
 
-
 func Benchmark1e9(b *testing.B) {
 	b.StopTimer()
 	r, _ := NewFC32(0, 1e9, false)
 	benchmark1eN(b, r)
 }
-
 
 func Test0(t *testing.T) {
 	const N = 10000
@@ -69,7 +63,6 @@ func Test0(t *testing.T) {
 		}
 	}
 }
-
 
 func Test1(t *testing.T) {
 	const (
@@ -131,7 +124,6 @@ func Test1(t *testing.T) {
 		}
 	}
 }
-
 
 func Test2(t *testing.T) {
 	const (
@@ -198,14 +190,12 @@ func Test2(t *testing.T) {
 	}
 }
 
-
 func benchmarkBig1eN(b *testing.B, r *FCBig) {
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		r.Next()
 	}
 }
-
 
 func BenchmarkBig1e3(b *testing.B) {
 	b.StopTimer()
@@ -214,14 +204,12 @@ func BenchmarkBig1e3(b *testing.B) {
 	benchmarkBig1eN(b, r)
 }
 
-
 func BenchmarkBig1e6(b *testing.B) {
 	b.StopTimer()
 	hi := big.NewInt(0).SetInt64(1e6)
 	r, _ := NewFCBig(big0, hi, false)
 	benchmarkBig1eN(b, r)
 }
-
 
 func BenchmarkBig1e9(b *testing.B) {
 	b.StopTimer()
@@ -230,14 +218,12 @@ func BenchmarkBig1e9(b *testing.B) {
 	benchmarkBig1eN(b, r)
 }
 
-
 func BenchmarkBig1e12(b *testing.B) {
 	b.StopTimer()
 	hi := big.NewInt(0).SetInt64(1e12)
 	r, _ := NewFCBig(big0, hi, false)
 	benchmarkBig1eN(b, r)
 }
-
 
 func BenchmarkBig1e15(b *testing.B) {
 	b.StopTimer()
@@ -246,14 +232,12 @@ func BenchmarkBig1e15(b *testing.B) {
 	benchmarkBig1eN(b, r)
 }
 
-
 func BenchmarkBig1e18(b *testing.B) {
 	b.StopTimer()
 	hi := big.NewInt(0).SetInt64(1e18)
 	r, _ := NewFCBig(big0, hi, false)
 	benchmarkBig1eN(b, r)
 }
-
 
 var (
 	big0 = big.NewInt(0)
@@ -304,7 +288,6 @@ func TestBig0(t *testing.T) {
 		}
 	}
 }
-
 
 func TestBig1(t *testing.T) {
 	const (
@@ -372,7 +355,6 @@ func TestBig1(t *testing.T) {
 		}
 	}
 }
-
 
 func TestBig2(t *testing.T) {
 	const (
@@ -444,7 +426,6 @@ func TestBig2(t *testing.T) {
 	}
 }
 
-
 func TestPermutations(t *testing.T) {
 	data := &vector.IntVector{3, 2, 1}
 	check := [][]int{
@@ -477,7 +458,6 @@ func TestPermutations(t *testing.T) {
 	}
 }
 
-
 func TestIsPrime(t *testing.T) {
 	const p4M = 283146 // # of primes < 4e6
 	n := 0
@@ -492,13 +472,11 @@ func TestIsPrime(t *testing.T) {
 	}
 }
 
-
 func BenchmarkIsPrime(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		IsPrime(uint32(i))
 	}
 }
-
 
 func BenchmarkNextPrime(b *testing.B) {
 	var p uint32
@@ -506,7 +484,6 @@ func BenchmarkNextPrime(b *testing.B) {
 		p, _ = NextPrime(p)
 	}
 }
-
 
 func TestNextPrime(t *testing.T) {
 	const p4M = 283146 // # of primes < 4e6
@@ -524,7 +501,6 @@ func TestNextPrime(t *testing.T) {
 		t.Fatal(n)
 	}
 }
-
 
 func TestNextPrime2(t *testing.T) {
 	type data struct {

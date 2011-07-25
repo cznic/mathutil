@@ -6,17 +6,14 @@
 
 package mathutil
 
-
 import (
 	"sort"
 )
-
 
 // Generate the first permutation of data.
 func PermutationFirst(data sort.Interface) {
 	sort.Sort(data)
 }
-
 
 // Generate the next permutation of data if possible and return true.
 // If there is no more permutation left return false.

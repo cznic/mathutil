@@ -6,13 +6,11 @@
 
 package mathutil
 
-
 import (
 	"big"
 	"fmt"
 	"os"
 )
-
 
 // FCBig is a full cycle PRNG covering ranges outside of the int32 limits.
 // For more info see the FC32 docs.
@@ -27,7 +25,6 @@ type FCBig struct {
 	primes  []int64  // Ordered. ∏ primes == cycle.
 	set     []int64  // Reordered primes (magnitude order bases) according to seed.
 }
-
 
 // NewFCBig returns a newly created FCBig adjusted for the closed interval [lo, hi] or an Error if any.
 // If hq == true then trade some generation time for improved (pseudo)randomness.
@@ -93,31 +90,26 @@ func NewFCBig(lo, hi *big.Int, hq bool) (r *FCBig, err os.Error) {
 	return
 }
 
-
 // Cycle reports the length of the inner FCPRNG cycle.
 // Cycle is atmost the double (HQ: triple) of the generator period (hi - lo + 1).
 func (r *FCBig) Cycle() *big.Int {
 	return r.cycle
 }
 
-
 // Next returns the first PRN after Pos.
 func (r *FCBig) Next() *big.Int {
 	return r.step(1)
 }
-
 
 // Pos reports the current position within the inner cycle.
 func (r *FCBig) Pos() *big.Int {
 	return r.pos
 }
 
-
 // Prev return the first PRN before Pos.
 func (r *FCBig) Prev() *big.Int {
 	return r.step(-1)
 }
-
 
 // Seed uses the provided seed value to initialize the generator to a deterministic state.
 // A zero seed produces a "canonical" generator with worse randomness than for most non zero seeds.
@@ -142,7 +134,6 @@ func (r *FCBig) Seed(seed int64) {
 	}
 }
 
-
 // Seek sets Pos to |pos| % Cycle.
 func (r *FCBig) Seek(pos *big.Int) {
 	r.pos.Set(pos)
@@ -155,7 +146,6 @@ func (r *FCBig) Seek(pos *big.Int) {
 		r.mods[i] = int(mod.Mod(r.pos, pp).Int64())
 	}
 }
-
 
 func (r *FCBig) step(dir int) (y *big.Int) {
 	y = big.NewInt(0)
@@ -189,7 +179,6 @@ func (r *FCBig) step(dir int) (y *big.Int) {
 	panic("unreachable")
 }
 
-
 func deleteBig(set []*big.Int, i int) (y []*big.Int) {
 	for j, v := range set {
 		if j != i {
@@ -198,7 +187,6 @@ func deleteBig(set []*big.Int, i int) (y []*big.Int) {
 	}
 	return
 }
-
 
 func mixBig(set []*big.Int, seed *uint64) (y []*big.Int) {
 	for len(set) != 0 {
