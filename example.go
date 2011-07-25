@@ -18,14 +18,14 @@ import (
 
 /* 
 
-$ # in "cznic/mathutil" dir
+$ # in "github.com/cznic/mathutil" dir
 $ make -f example.make
 $ # Intended usage e.g.:
-$ ./example -max 1024 > rnd.dat # generate 1kB of "random" data
+$ ./example -max 1024 > mathutil.dat # generate 1kB of "random" data
 
 */
 func main() {
-	if r, err := rnd.NewFC32(math.MinInt32, math.MaxInt32, true); err != nil {
+	if r, err := mathutil.NewFC32(math.MinInt32, math.MaxInt32, true); err != nil {
 		log.Fatal(err)
 	} else {
 		var mflag uint64

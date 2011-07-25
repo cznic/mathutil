@@ -20,7 +20,7 @@ import (
 
 // see http://www.boallen.com/random-numbers.html
 func main() {
-	if r, err := rnd.NewFC32(math.MinInt32, math.MaxInt32, true); err != nil {
+	if r, err := mathutil.NewFC32(math.MinInt32, math.MaxInt32, true); err != nil {
 		log.Fatal(err)
 	} else {
 		img := image.NewGray(512, 512)
