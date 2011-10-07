@@ -18,7 +18,7 @@ func PermutationFirst(data sort.Interface) {
 // Generate the next permutation of data if possible and return true.
 // If there is no more permutation left return false.
 // Based on the algorithm described here:
-// http://en.wikipedia.org/wiki/Permutation#Systematic_generation_of_all_permutations 
+// http://en.wikipedia.org/wiki/Permutation#Generation_in_lexicographic_order
 func PermutationNext(data sort.Interface) bool {
 	var k, l int
 	for k = data.Len() - 2; ; k-- { // 1.

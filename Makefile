@@ -23,4 +23,4 @@ example2: example2.go $(GOFILES)
 	make install clean && make -f example2.make
 
 example3: example3.go $(GOFILES)
-	make install clean && make -f example2.make
+	make install clean && make -f example3.make

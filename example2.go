@@ -20,10 +20,11 @@ import (
 
 // see http://www.boallen.com/random-numbers.html
 func main() {
+	sqr := image.Rect(0, 0, 511, 511)
 	if r, err := mathutil.NewFC32(math.MinInt32, math.MaxInt32, true); err != nil {
-		log.Fatal(err)
+		log.Fatal("NewFC32", err)
 	} else {
-		img := image.NewGray(512, 512)
+		img := image.NewGray(sqr)
 		for y := 0; y < 512; y++ {
 			for x := 0; x < 512; x++ {
 				if r.Next()&1 != 0 {
@@ -33,15 +34,15 @@ func main() {
 		}
 		buf := bytes.NewBuffer(nil)
 		if err := png.Encode(buf, img); err != nil {
-			log.Fatal(err)
+			log.Fatal("Encode rnd.png ", err)
 		}
 		if err := ioutil.WriteFile("rnd.png", buf.Bytes(), 0666); err != nil {
-			log.Fatal(err)
+			log.Fatal("ioutil.WriteFile/rnd.png ", err)
 		}
 	}
 
 	r := rand.New(rand.NewSource(0))
-	img := image.NewGray(512, 512)
+	img := image.NewGray(sqr)
 	for y := 0; y < 512; y++ {
 		for x := 0; x < 512; x++ {
 			if r.Int()&1 != 0 {
@@ -51,9 +52,9 @@ func main() {
 	}
 	buf := bytes.NewBuffer(nil)
 	if err := png.Encode(buf, img); err != nil {
-		log.Fatal(err)
+		log.Fatal("Encode rand.png ", err)
 	}
 	if err := ioutil.WriteFile("rand.png", buf.Bytes(), 0666); err != nil {
-		log.Fatal(err)
+		log.Fatal("ioutil.WriteFile/rand.png ", err)
 	}
 }
