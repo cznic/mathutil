@@ -8,8 +8,8 @@ package mathutil
 
 import (
 	"big"
-	"container/vector"
 	"math"
+	"sort"
 	"testing"
 )
 
@@ -427,7 +427,7 @@ func TestBig2(t *testing.T) {
 }
 
 func TestPermutations(t *testing.T) {
-	data := &vector.IntVector{3, 2, 1}
+	data := sort.IntSlice{3, 2, 1}
 	check := [][]int{
 		{1, 2, 3},
 		{1, 3, 2},
@@ -443,7 +443,7 @@ func TestPermutations(t *testing.T) {
 		}
 
 		for j, v := range check[i] {
-			got := (*data)[j]
+			got := data[j]
 			if got != v {
 				t.Fatalf("permutation %d:\ndata: %v\ncheck: %v\nexpected data[%d] == %d, got %d", i, data, check[i], j, v, got)
 			}
