@@ -10,7 +10,6 @@ package mathutil
 import (
 	"fmt"
 	"math"
-	"os"
 )
 
 // FC32 is a full cycle PRNG covering the 32 bit signed integer range.
@@ -37,7 +36,7 @@ type FC32 struct {
 
 // NewFC32 returns a newly created FC32 adjusted for the closed interval [lo, hi] or an Error if any.
 // If hq == true then trade some generation time for improved (pseudo)randomness.
-func NewFC32(lo, hi int, hq bool) (r *FC32, err os.Error) {
+func NewFC32(lo, hi int, hq bool) (r *FC32, err error) {
 	if lo > hi {
 		return nil, fmt.Errorf("invalid range %d > %d", lo, hi)
 	}

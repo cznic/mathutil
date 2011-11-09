@@ -7,8 +7,8 @@
 package mathutil
 
 import (
-	"big"
 	"math"
+	"math/big"
 	"sort"
 	"testing"
 )

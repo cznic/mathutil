@@ -11,8 +11,8 @@ import (
 	"bufio"
 	"flag"
 	"log"
+	"math/rand"
 	"os"
-	"rand"
 )
 
 /* 

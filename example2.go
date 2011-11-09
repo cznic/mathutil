@@ -15,7 +15,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
-	"rand"
+	"math/rand"
 )
 
 // see http://www.boallen.com/random-numbers.html

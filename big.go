@@ -7,9 +7,8 @@
 package mathutil
 
 import (
-	"big"
 	"fmt"
-	"os"
+	"math/big"
 )
 
 // FCBig is a full cycle PRNG covering ranges outside of the int32 limits.
@@ -28,7 +27,7 @@ type FCBig struct {
 
 // NewFCBig returns a newly created FCBig adjusted for the closed interval [lo, hi] or an Error if any.
 // If hq == true then trade some generation time for improved (pseudo)randomness.
-func NewFCBig(lo, hi *big.Int, hq bool) (r *FCBig, err os.Error) {
+func NewFCBig(lo, hi *big.Int, hq bool) (r *FCBig, err error) {
 	if lo.Cmp(hi) > 0 {
 		return nil, fmt.Errorf("invalid range %d > %d", lo, hi)
 	}
