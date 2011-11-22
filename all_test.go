@@ -9,6 +9,7 @@ package mathutil
 import (
 	"math"
 	"math/big"
+	"math/rand"
 	"sort"
 	"testing"
 )
@@ -20,19 +21,19 @@ func benchmark1eN(b *testing.B, r *FC32) {
 	}
 }
 
-func Benchmark1e3(b *testing.B) {
+func BenchmarkFC1e3(b *testing.B) {
 	b.StopTimer()
 	r, _ := NewFC32(0, 1e3, false)
 	benchmark1eN(b, r)
 }
 
-func Benchmark1e6(b *testing.B) {
+func BenchmarkFC1e6(b *testing.B) {
 	b.StopTimer()
 	r, _ := NewFC32(0, 1e6, false)
 	benchmark1eN(b, r)
 }
 
-func Benchmark1e9(b *testing.B) {
+func BenchmarkFC1e9(b *testing.B) {
 	b.StopTimer()
 	r, _ := NewFC32(0, 1e9, false)
 	benchmark1eN(b, r)
@@ -197,42 +198,42 @@ func benchmarkBig1eN(b *testing.B, r *FCBig) {
 	}
 }
 
-func BenchmarkBig1e3(b *testing.B) {
+func BenchmarkFCBig1e3(b *testing.B) {
 	b.StopTimer()
 	hi := big.NewInt(0).SetInt64(1e3)
 	r, _ := NewFCBig(big0, hi, false)
 	benchmarkBig1eN(b, r)
 }
 
-func BenchmarkBig1e6(b *testing.B) {
+func BenchmarkFCBig1e6(b *testing.B) {
 	b.StopTimer()
 	hi := big.NewInt(0).SetInt64(1e6)
 	r, _ := NewFCBig(big0, hi, false)
 	benchmarkBig1eN(b, r)
 }
 
-func BenchmarkBig1e9(b *testing.B) {
+func BenchmarkFCBig1e9(b *testing.B) {
 	b.StopTimer()
 	hi := big.NewInt(0).SetInt64(1e9)
 	r, _ := NewFCBig(big0, hi, false)
 	benchmarkBig1eN(b, r)
 }
 
-func BenchmarkBig1e12(b *testing.B) {
+func BenchmarkFCBig1e12(b *testing.B) {
 	b.StopTimer()
 	hi := big.NewInt(0).SetInt64(1e12)
 	r, _ := NewFCBig(big0, hi, false)
 	benchmarkBig1eN(b, r)
 }
 
-func BenchmarkBig1e15(b *testing.B) {
+func BenchmarkFCBig1e15(b *testing.B) {
 	b.StopTimer()
 	hi := big.NewInt(0).SetInt64(1e15)
 	r, _ := NewFCBig(big0, hi, false)
 	benchmarkBig1eN(b, r)
 }
 
-func BenchmarkBig1e18(b *testing.B) {
+func BenchmarkFCBig1e18(b *testing.B) {
 	b.StopTimer()
 	hi := big.NewInt(0).SetInt64(1e18)
 	r, _ := NewFCBig(big0, hi, false)
@@ -473,15 +474,28 @@ func TestIsPrime(t *testing.T) {
 }
 
 func BenchmarkIsPrime(b *testing.B) {
+	b.StopTimer()
+	n := make([]uint32, b.N)
+	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
-		IsPrime(uint32(i))
+		n[i] = rng.Uint32()
+	}
+	b.StartTimer()
+	for _, n := range n {
+		IsPrime(n)
 	}
 }
 
 func BenchmarkNextPrime(b *testing.B) {
-	var p uint32
+	b.StopTimer()
+	n := make([]uint32, b.N)
+	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
-		p, _ = NextPrime(p)
+		n[i] = rng.Uint32()
+	}
+	b.StartTimer()
+	for _, n := range n {
+		NextPrime(n)
 	}
 }
 
@@ -526,5 +540,164 @@ func TestNextPrime2(t *testing.T) {
 		if ok != test.ok || ok && y != test.y {
 			t.Fatalf("x %d, got y %d ok %t, expected y %d ok %t", test.x, y, ok, test.y, test.ok)
 		}
+	}
+}
+
+func TestISqrt(t *testing.T) {
+	for n := int64(0); n < 5e6; n++ {
+		x := int64(ISqrt(uint32(n)))
+		if x2 := x * x; x2 > n {
+			t.Fatalf("got ISqrt(%d) == %d, too big", n, x)
+		}
+		if x2 := x*x + 2*x + 1; x2 < n {
+			t.Fatalf("got ISqrt(%d) == %d, too low", n, x)
+		}
+	}
+	for n := int64(math.MaxUint32); n > math.MaxUint32-5e6; n-- {
+		x := int64(ISqrt(uint32(n)))
+		if x2 := x * x; x2 > n {
+			t.Fatalf("got ISqrt(%d) == %d, too big", n, x)
+		}
+		if x2 := x*x + 2*x + 1; x2 < n {
+			t.Fatalf("got ISqrt(%d) == %d, too low", n, x)
+		}
+	}
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < 5e6; i++ {
+		n := int64(rng.Uint32())
+		x := int64(ISqrt(uint32(n)))
+		if x2 := x * x; x2 > n {
+			t.Fatalf("got ISqrt(%d) == %d, too big", n, x)
+		}
+		if x2 := x*x + 2*x + 1; x2 < n {
+			t.Fatalf("got ISqrt(%d) == %d, too low", n, x)
+		}
+	}
+}
+
+func TestFactorInt(t *testing.T) {
+	chk := func(n uint64, f []FactorTerm) bool {
+		if n < 2 {
+			return len(f) == 0
+		}
+
+		for i := 1; i < len(f); i++ { // verify ordering
+			if t, u := f[i-1], f[i]; t.Prime >= u.Prime {
+				return false
+			}
+		}
+
+		x := uint64(1)
+		for _, v := range f {
+			if p := v.Prime; p < 0 || !IsPrime(uint32(v.Prime)) {
+				return false
+			}
+
+			for i := uint32(0); i < v.Power; i++ {
+				x *= uint64(v.Prime)
+				if x > math.MaxUint32 {
+					return false
+				}
+			}
+		}
+		return x == n
+	}
+
+	for n := uint64(0); n < 3e5; n++ {
+		f := FactorInt(uint32(n))
+		if !chk(n, f) {
+			t.Fatalf("bad FactorInt(%d): %v", n, f)
+		}
+	}
+	for n := uint64(math.MaxUint32); n > math.MaxUint32-12e4; n-- {
+		f := FactorInt(uint32(n))
+		if !chk(n, f) {
+			t.Fatalf("bad FactorInt(%d): %v", n, f)
+		}
+	}
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < 13e4; i++ {
+		n := rng.Uint32()
+		f := FactorInt(n)
+		if !chk(uint64(n), f) {
+			t.Fatalf("bad FactorInt(%d): %v", n, f)
+		}
+	}
+}
+
+func BenchmarkISqrt(b *testing.B) {
+	b.StopTimer()
+	n := make([]uint32, b.N)
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < b.N; i++ {
+		n[i] = rng.Uint32()
+	}
+	b.StartTimer()
+	for _, n := range n {
+		ISqrt(n)
+	}
+}
+
+func BenchmarkFactorInt(b *testing.B) {
+	b.StopTimer()
+	n := make([]uint32, b.N)
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < b.N; i++ {
+		n[i] = rng.Uint32()
+	}
+	b.StartTimer()
+	for _, n := range n {
+		FactorInt(n)
+	}
+}
+
+func TestIsPrimeUint16(t *testing.T) {
+	for n := 0; n <= math.MaxUint16; n++ {
+		if IsPrimeUint16(uint16(n)) != IsPrime(uint32(n)) {
+			t.Fatal(n)
+		}
+	}
+}
+
+func BenchmarkIsPrimeUint16(b *testing.B) {
+	b.StopTimer()
+	n := make([]uint16, b.N)
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < b.N; i++ {
+		n[i] = uint16(rng.Uint32())
+	}
+	b.StartTimer()
+	for _, n := range n {
+		IsPrimeUint16(n)
+	}
+}
+
+func TestNextPrimeUint16(t *testing.T) {
+	for n := 0; n <= math.MaxUint16; n++ {
+		p, ok := NextPrimeUint16(uint16(n))
+		p2, ok2 := NextPrime(uint32(n))
+		switch {
+		case ok:
+			if !ok2 || uint32(p) != p2 {
+				t.Fatal(n, p, ok)
+			}
+		case !ok && ok2:
+			if p2 < 65536 {
+				t.Fatal(n, p, ok)
+			}
+		}
+	}
+}
+
+func BenchmarkNextPrimeUint16(b *testing.B) {
+	b.StopTimer()
+	n := make([]uint16, b.N)
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < b.N; i++ {
+		n[i] = uint16(rng.Uint32())
+	}
+	b.StartTimer()
+	for _, n := range n {
+		NextPrimeUint16(n)
 	}
 }
