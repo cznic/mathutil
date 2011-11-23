@@ -842,7 +842,7 @@ func ISqrt(n uint32) (x uint32) {
 		return
 	}
 
-	if n == math.MaxUint32 {
+	if n >= math.MaxUint16*math.MaxUint16 {
 		return 65535
 	}
 
