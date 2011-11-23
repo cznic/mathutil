@@ -625,6 +625,48 @@ func TestFactorInt(t *testing.T) {
 	}
 }
 
+func TestFactorIntB(t *testing.T) {
+	const N = 3e5 // must be < math.MaxInt32
+	factors := make([][]FactorTerm, N+1)
+	// set up the divisors
+	for prime := uint32(2); prime <= N; prime, _ = NextPrime(prime) {
+		for n := int(prime); n <= N; n += int(prime) {
+			factors[n] = append(factors[n], FactorTerm{prime, 0})
+		}
+	}
+	// set up the powers
+	for n := 2; n <= N; n++ {
+		f := factors[n]
+		m := uint32(n)
+		for i, v := range f {
+			for m%v.Prime == 0 {
+				m /= v.Prime
+				v.Power++
+			}
+			f[i] = v
+		}
+		factors[n] = f
+	}
+	// check equal
+	for n, e := range factors {
+		g := FactorInt(uint32(n))
+		if len(e) != len(g) {
+			t.Fatal(n, "len", g, "!=", e)
+		}
+
+		for i, ev := range e {
+			gv := g[i]
+			if ev.Prime != gv.Prime {
+				t.Fatal(n, "prime", gv, ev)
+			}
+
+			if ev.Power != gv.Power {
+				t.Fatal(n, "power", gv, ev)
+			}
+		}
+	}
+}
+
 func BenchmarkISqrt(b *testing.B) {
 	b.StopTimer()
 	n := make([]uint32, b.N)
