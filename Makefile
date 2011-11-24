@@ -11,6 +11,7 @@ GOFILES=\
 	permute.go\
 	primes.go\
 	rnd.go\
+	tables.go\
 
 CLEANFILES += example example2 example3 rnd.png rand.png *~
 
