@@ -16,10 +16,8 @@ import (
 
 /* 
 
-$ # in "cznic/mathutil" dir
-$ make -f example3.make
-$ # Intended usage e.g.:
-$ ./example3 -max 1024 > rand.dat # generate 1kB of "random" data
+$ # Usage e.g.:
+$ go run example3.go -max 1024 > rand.dat # generate 1kB of "random" data
 
 */
 func main() {

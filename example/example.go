@@ -8,8 +8,8 @@ package main
 
 import (
 	"bufio"
-	"github.com/cznic/mathutil"
 	"flag"
+	"github.com/cznic/mathutil"
 	"log"
 	"math"
 	"os"
@@ -17,10 +17,8 @@ import (
 
 /* 
 
-$ # in "github.com/cznic/mathutil" dir
-$ make -f example.make
-$ # Intended usage e.g.:
-$ ./example -max 1024 > mathutil.dat # generate 1kB of "random" data
+$ # Usage e.g.:
+$ go run example.go -max 1024 > mathutil.dat # generate 1kB of "random" data
 
 */
 func main() {

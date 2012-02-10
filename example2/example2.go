@@ -17,6 +17,8 @@ import (
 	"math/rand"
 )
 
+// $ go run example2.go # view rand.png and rnd.png by your favorite pic viewer
+//
 // see http://www.boallen.com/random-numbers.html
 func main() {
 	sqr := image.Rect(0, 0, 511, 511)
