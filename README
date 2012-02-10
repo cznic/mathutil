@@ -5,4 +5,4 @@ Online godoc documentation for this package available at:
 http://gopkgdoc.appspot.com/pkg/github.com/cznic/mathutil
 
 Installation:
-$ goinstall github.com/cznic/mathutil
+$ go get github.com/cznic/mathutil
