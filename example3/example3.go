@@ -33,8 +33,9 @@ func main() {
 			}
 		}
 		stdout.Flush()
-	} else {
-		for stdout.WriteByte(byte(r.Int())) == nil {
-		}
+		return
+	}
+
+	for stdout.WriteByte(byte(r.Int())) == nil {
 	}
 }

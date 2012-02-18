@@ -22,23 +22,25 @@ $ go run example.go -max 1024 > mathutil.dat # generate 1kB of "random" data
 
 */
 func main() {
-	if r, err := mathutil.NewFC32(math.MinInt32, math.MaxInt32, true); err != nil {
+	r, err := mathutil.NewFC32(math.MinInt32, math.MaxInt32, true)
+	if err != nil {
 		log.Fatal(err)
-	} else {
-		var mflag uint64
-		flag.Uint64Var(&mflag, "max", 0, "limit output to max bytes")
-		flag.Parse()
-		stdout := bufio.NewWriter(os.Stdout)
-		if mflag != 0 {
-			for i := uint64(0); i < mflag; i++ {
-				if err := stdout.WriteByte(byte(r.Next())); err != nil {
-					log.Fatal(err)
-				}
-			}
-			stdout.Flush()
-		} else {
-			for stdout.WriteByte(byte(r.Next())) == nil {
+	}
+
+	var mflag uint64
+	flag.Uint64Var(&mflag, "max", 0, "limit output to max bytes")
+	flag.Parse()
+	stdout := bufio.NewWriter(os.Stdout)
+	if mflag != 0 {
+		for i := uint64(0); i < mflag; i++ {
+			if err := stdout.WriteByte(byte(r.Next())); err != nil {
+				log.Fatal(err)
 			}
 		}
+		stdout.Flush()
+		return
+	}
+
+	for stdout.WriteByte(byte(r.Next())) == nil {
 	}
 }
