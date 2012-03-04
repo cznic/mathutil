@@ -7,12 +7,37 @@
 package mathutil
 
 import (
+	"fmt"
 	"math"
 	"math/big"
 	"math/rand"
+	"runtime"
 	"sort"
 	"testing"
 )
+
+func r32() *FC32 {
+	r, err := NewFC32(math.MinInt32, math.MaxInt32, true)
+	if err != nil {
+		panic(err)
+	}
+
+	return r
+}
+
+var (
+	r64lo = big.NewInt(math.MinInt64)
+	r64hi = big.NewInt(math.MaxInt64)
+)
+
+func r64() *FCBig {
+	r, err := NewFCBig(r64lo, r64hi, true)
+	if err != nil {
+		panic(err)
+	}
+
+	return r
+}
 
 func benchmark1eN(b *testing.B, r *FC32) {
 	b.StartTimer()
@@ -741,5 +766,847 @@ func BenchmarkNextPrimeUint16(b *testing.B) {
 	b.StartTimer()
 	for _, n := range n {
 		NextPrimeUint16(n)
+	}
+}
+
+/*
+
+From: http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetKernighan
+
+Counting bits set, Brian Kernighan's way
+
+unsigned int v; // count the number of bits set in v
+unsigned int c; // c accumulates the total bits set in v
+for (c = 0; v; c++)
+{
+  v &= v - 1; // clear the least significant bit set
+}
+
+Brian Kernighan's method goes through as many iterations as there are set bits.
+So if we have a 32-bit word with only the high bit set, then it will only go
+once through the loop.
+
+Published in 1988, the C Programming Language 2nd Ed. (by Brian W. Kernighan
+and Dennis M. Ritchie) mentions this in exercise 2-9. On April 19, 2006 Don
+Knuth pointed out to me that this method "was first published by Peter Wegner
+in CACM 3 (1960), 322. (Also discovered independently by Derrick Lehmer and
+published in 1964 in a book edited by Beckenbach.)"
+*/
+func bcnt(v uint64) (c int) {
+	for ; v != 0; c++ {
+		v &= v - 1
+	}
+	return
+}
+
+func TestPopCount(t *testing.T) {
+	const N = 4e5
+	maxUint64 := big.NewInt(0)
+	maxUint64.SetBit(maxUint64, 64, 1)
+	maxUint64.Sub(maxUint64, big.NewInt(1))
+	rng := r64()
+	for i := 0; i < N; i++ {
+		n := uint64(rng.Next().Int64())
+		if g, e := PopCountByte(byte(n)), bcnt(uint64(byte(n))); g != e {
+			t.Fatal(n, g, e)
+		}
+
+		if g, e := PopCountUint16(uint16(n)), bcnt(uint64(uint16(n))); g != e {
+			t.Fatal(n, g, e)
+		}
+
+		if g, e := PopCountUint32(uint32(n)), bcnt(uint64(uint32(n))); g != e {
+			t.Fatal(n, g, e)
+		}
+
+		if g, e := PopCount(int(n)), bcnt(uint64(uint(n))); g != e {
+			t.Fatal(n, g, e)
+		}
+
+		if g, e := PopCountUint(uint(n)), bcnt(uint64(uint(n))); g != e {
+			t.Fatal(n, g, e)
+		}
+
+		if g, e := PopCountUint64(n), bcnt(n); g != e {
+			t.Fatal(n, g, e)
+		}
+
+		if g, e := PopCountUintptr(uintptr(n)), bcnt(uint64(n)); g != e {
+			t.Fatal(n, g, e)
+		}
+	}
+}
+
+var gcds = []struct{ a, b, gcd uint64 }{
+	{8, 12, 4},
+	{12, 18, 6},
+	{42, 56, 14},
+	{54, 24, 6},
+	{252, 105, 21},
+	{1989, 867, 51},
+	{1071, 462, 21},
+	{2 * 3 * 5 * 7 * 11, 5 * 7 * 11 * 13 * 17, 5 * 7 * 11},
+	{2 * 3 * 5 * 7 * 7 * 11, 5 * 7 * 7 * 11 * 13 * 17, 5 * 7 * 7 * 11},
+	{2 * 3 * 5 * 7 * 7 * 11, 5 * 7 * 7 * 13 * 17, 5 * 7 * 7},
+	{2 * 3 * 5 * 7 * 11, 13 * 17 * 19, 1},
+}
+
+func TestGCD(t *testing.T) {
+	for i, v := range gcds {
+		if v.a <= math.MaxUint16 && v.b <= math.MaxUint16 {
+			if g, e := uint64(GCDUint16(uint16(v.a), uint16(v.b))), v.gcd; g != e {
+				t.Errorf("%d: got gcd(%d, %d) %d, exp %d", i, v.a, v.b, g, e)
+			}
+			if g, e := uint64(GCDUint16(uint16(v.b), uint16(v.a))), v.gcd; g != e {
+				t.Errorf("%d: got gcd(%d, %d) %d, exp %d", i, v.b, v.a, g, e)
+			}
+		}
+		if v.a <= math.MaxUint32 && v.b <= math.MaxUint32 {
+			if g, e := uint64(GCDUint32(uint32(v.a), uint32(v.b))), v.gcd; g != e {
+				t.Errorf("%d: got gcd(%d, %d) %d, exp %d", i, v.a, v.b, g, e)
+			}
+			if g, e := uint64(GCDUint32(uint32(v.b), uint32(v.a))), v.gcd; g != e {
+				t.Errorf("%d: got gcd(%d, %d) %d, exp %d", i, v.b, v.a, g, e)
+			}
+		}
+		if g, e := GCDUint64(v.a, v.b), v.gcd; g != e {
+			t.Errorf("%d: got gcd(%d, %d) %d, exp %d", i, v.a, v.b, g, e)
+		}
+		if g, e := GCDUint64(v.b, v.a), v.gcd; g != e {
+			t.Errorf("%d: got gcd(%d, %d) %d, exp %d", i, v.b, v.a, g, e)
+		}
+	}
+}
+
+func lg2(n uint64) (lg int) {
+	if n == 0 {
+		return -1
+	}
+
+	for n >>= 1; n != 0; n >>= 1 {
+		lg++
+	}
+	return
+}
+
+func TestLog2(t *testing.T) {
+	if g, e := Log2Byte(0), -1; g != e {
+		t.Error(g, e)
+	}
+	if g, e := Log2Uint16(0), -1; g != e {
+		t.Error(g, e)
+	}
+	if g, e := Log2Uint32(0), -1; g != e {
+		t.Error(g, e)
+	}
+	if g, e := Log2Uint64(0), -1; g != e {
+		t.Error(g, e)
+	}
+	const N = 1e6
+	rng := r64()
+	for i := 0; i < N; i++ {
+		n := uint64(rng.Next().Int64())
+		if g, e := Log2Uint64(n), lg2(n); g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+		if g, e := Log2Uint32(uint32(n)), lg2(n&0xffffffff); g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+		if g, e := Log2Uint16(uint16(n)), lg2(n&0xffff); g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+		if g, e := Log2Byte(byte(n)), lg2(n&0xff); g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+	}
+}
+
+func TestBitLen(t *testing.T) {
+	if g, e := BitLenByte(0), 0; g != e {
+		t.Error(g, e)
+	}
+	if g, e := BitLenUint16(0), 0; g != e {
+		t.Error(g, e)
+	}
+	if g, e := BitLenUint32(0), 0; g != e {
+		t.Error(g, e)
+	}
+	if g, e := BitLenUint64(0), 0; g != e {
+		t.Error(g, e)
+	}
+	if g, e := BitLenUintptr(0), 0; g != e {
+		t.Error(g, e)
+	}
+	const N = 1e6
+	rng := r64()
+	for i := 0; i < N; i++ {
+		n := uint64(rng.Next().Int64())
+		if g, e := BitLenUintptr(uintptr(n)), lg2(uint64(n))+1; g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+		if g, e := BitLenUint64(n), lg2(n)+1; g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+		if g, e := BitLenUint32(uint32(n)), lg2(n&0xffffffff)+1; g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+		if g, e := BitLen(int(n)), lg2(uint64(uint(n)))+1; g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+		if g, e := BitLenUint(uint(n)), lg2(uint64(uint(n)))+1; g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+		if g, e := BitLenUint16(uint16(n)), lg2(n&0xffff)+1; g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+		if g, e := BitLenByte(byte(n)), lg2(n&0xff)+1; g != e {
+			t.Fatalf("%b %d %d", n, g, e)
+		}
+	}
+}
+
+func BenchmarkGCDByte(b *testing.B) {
+	const N = 1 << 16
+	type t byte
+	type u struct{ a, b t }
+	b.StopTimer()
+	rng := r32()
+	a := make([]u, N)
+	for i := range a {
+		a[i] = u{t(rng.Next()), t(rng.Next())}
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		GCDByte(byte(v.a), byte(v.b))
+	}
+}
+
+func BenchmarkGCDUint16(b *testing.B) {
+	const N = 1 << 16
+	type t uint16
+	type u struct{ a, b t }
+	b.StopTimer()
+	rng := r32()
+	a := make([]u, N)
+	for i := range a {
+		a[i] = u{t(rng.Next()), t(rng.Next())}
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		GCDUint16(uint16(v.a), uint16(v.b))
+	}
+}
+
+func BenchmarkGCDUint32(b *testing.B) {
+	const N = 1 << 16
+	type t uint32
+	type u struct{ a, b t }
+	b.StopTimer()
+	rng := r32()
+	a := make([]u, N)
+	for i := range a {
+		a[i] = u{t(rng.Next()), t(rng.Next())}
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		GCDUint32(uint32(v.a), uint32(v.b))
+	}
+}
+
+func BenchmarkGCDUint64(b *testing.B) {
+	const N = 1 << 16
+	type t uint64
+	type u struct{ a, b t }
+	b.StopTimer()
+	rng := r64()
+	a := make([]u, N)
+	for i := range a {
+		a[i] = u{t(rng.Next().Int64()), t(rng.Next().Int64())}
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		GCDUint64(uint64(v.a), uint64(v.b))
+	}
+}
+
+func BenchmarkLog2Byte(b *testing.B) {
+	const N = 1 << 16
+	type t byte
+	b.StopTimer()
+	rng := r32()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		Log2Byte(byte(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkLog2Uint16(b *testing.B) {
+	const N = 1 << 16
+	type t uint16
+	b.StopTimer()
+	rng := r32()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		Log2Uint16(uint16(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkLog2Uint32(b *testing.B) {
+	const N = 1 << 16
+	type t uint32
+	b.StopTimer()
+	rng := r32()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		Log2Uint32(uint32(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkLog2Uint64(b *testing.B) {
+	const N = 1 << 16
+	type t uint64
+	b.StopTimer()
+	rng := r64()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next().Int64())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		Log2Uint64(uint64(a[i&(N-1)]))
+	}
+}
+func BenchmarkBitLenByte(b *testing.B) {
+	const N = 1 << 16
+	type t byte
+	b.StopTimer()
+	rng := r32()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		BitLenByte(byte(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkBitLenUint16(b *testing.B) {
+	const N = 1 << 16
+	type t uint16
+	b.StopTimer()
+	rng := r32()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		BitLenUint16(uint16(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkBitLenUint32(b *testing.B) {
+	const N = 1 << 16
+	type t uint32
+	b.StopTimer()
+	rng := r32()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		BitLenUint32(uint32(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkBitLen(b *testing.B) {
+	const N = 1 << 16
+	type t int
+	b.StopTimer()
+	rng := r64()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next().Int64())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		BitLen(int(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkBitLenUint(b *testing.B) {
+	const N = 1 << 16
+	type t uint
+	b.StopTimer()
+	rng := r64()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next().Int64())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		BitLenUint(uint(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkBitLenUintptr(b *testing.B) {
+	const N = 1 << 16
+	type t uintptr
+	b.StopTimer()
+	rng := r64()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next().Int64())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		BitLenUintptr(uintptr(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkBitLenUint64(b *testing.B) {
+	const N = 1 << 16
+	type t uint64
+	b.StopTimer()
+	rng := r64()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next().Int64())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		BitLenUint64(uint64(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkPopCountByte(b *testing.B) {
+	const N = 1 << 16
+	type t byte
+	b.StopTimer()
+	rng := r32()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		PopCountByte(byte(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkPopCountUint16(b *testing.B) {
+	const N = 1 << 16
+	type t uint16
+	b.StopTimer()
+	rng := r32()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		PopCountUint16(uint16(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkPopCountUint32(b *testing.B) {
+	const N = 1 << 16
+	type t uint32
+	b.StopTimer()
+	rng := r32()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		PopCountUint32(uint32(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkPopCount(b *testing.B) {
+	const N = 1 << 16
+	type t int
+	b.StopTimer()
+	rng := r64()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next().Int64())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		PopCount(int(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkPopCountUint(b *testing.B) {
+	const N = 1 << 16
+	type t uint
+	b.StopTimer()
+	rng := r64()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next().Int64())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		PopCountUint(uint(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkPopCountUintptr(b *testing.B) {
+	const N = 1 << 16
+	type t uintptr
+	b.StopTimer()
+	rng := r64()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next().Int64())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		PopCountUintptr(uintptr(a[i&(N-1)]))
+	}
+}
+
+func BenchmarkPopCountUint64(b *testing.B) {
+	const N = 1 << 16
+	type t uint64
+	b.StopTimer()
+	rng := r64()
+	a := make([]t, N)
+	for i := range a {
+		a[i] = t(rng.Next().Int64())
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		PopCountUint64(uint64(a[i&(N-1)]))
+	}
+}
+
+func TestUintptrBits(t *testing.T) {
+	switch g := UintptrBits(); g {
+	case 32, 64:
+		// ok
+		t.Log(g)
+	default:
+		t.Fatalf("got %d, expected 32 or 64", g)
+	}
+}
+
+func BenchmarkUintptrBits(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		UintptrBits()
+	}
+}
+
+func TestUint64ToBigInt(t *testing.T) {
+	const N = 2e5
+	data := []uint64{0, 1, math.MaxInt64 - 1, math.MaxInt64, math.MaxInt64 + 1, math.MaxUint64 - 1, math.MaxUint64}
+
+	var e big.Int
+	f := func(n uint64) {
+		g := Uint64ToBigInt(n)
+		e.SetString(fmt.Sprintf("%d", n), 10)
+		if g.Cmp(&e) != 0 {
+			t.Errorf("got %s(0x%x), exp %d(0x%x)", g, g, n, n)
+		}
+	}
+
+	for _, v := range data {
+		f(v)
+	}
+
+	r := r64()
+	for i := 0; i < N; i++ {
+		f(uint64(r.Next().Int64()))
+	}
+}
+
+func BenchmarkUint64ToBigInt(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	a := make([]uint64, N)
+	r := r64()
+	for i := range a {
+		a[i] = uint64(r.Next().Int64())
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		Uint64ToBigInt(a[i&(N-1)])
+	}
+}
+
+func TestUint64FromBigInt(t *testing.T) {
+	const N = 2e5
+	data := []struct {
+		s  string
+		e  uint64
+		ok bool
+	}{
+		{"-2", 0, false},
+		{"-1", 0, false},
+		{"0", 0, true},
+		{"1", 1, true},
+		{"2", 2, true},
+
+		{"4294967294", 4294967294, true},
+		{"4294967295", 4294967295, true},
+		{"4294967296", 4294967296, true},
+		{"4294967297", 4294967297, true},
+		{"4294967298", 4294967298, true},
+
+		{"18446744073709551613", 18446744073709551613, true},
+		{"18446744073709551614", 18446744073709551614, true},
+		{"18446744073709551615", 18446744073709551615, true},
+		{"18446744073709551616", 0, false},
+		{"18446744073709551617", 0, false},
+		{"18446744073709551618", 0, false},
+	}
+
+	var x big.Int
+	f := func(s string, e uint64, ok bool) {
+		x.SetString(s, 10)
+		switch g, gok := Uint64FromBigInt(&x); {
+		case gok != ok:
+			t.Errorf("%s: got %t, exp %t", s, gok, ok)
+		case ok && g != e:
+			t.Errorf("%s: got %d, exp %d", s, g, s)
+		}
+
+	}
+
+	for _, v := range data {
+		f(v.s, v.e, v.ok)
+	}
+	r := r64()
+	for i := 0; i < N; i++ {
+		n := uint64(r.Next().Int64())
+		f(fmt.Sprintf("%d", n), n, true)
+	}
+}
+
+func BenchmarkUint64FromBigInt(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	a := make([]*big.Int, N)
+	r := r64()
+	for i := range a {
+		a[i] = Uint64ToBigInt(uint64(r.Next().Int64()))
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		Uint64FromBigInt(a[i&(N-1)])
+	}
+}
+
+func TestModPowByte(t *testing.T) {
+	data := []struct{ b, e, m, r byte }{
+		{2, 11, 23, 1}, // 23|M11
+		{2, 11, 89, 1}, // 89|M11
+		{2, 23, 47, 1}, // 47|M23
+		{5, 3, 13, 8},
+	}
+
+	for _, v := range data {
+		if g, e := ModPowByte(v.b, v.e, v.m), v.r; g != e {
+			t.Errorf("b %d e %d m %d: got %d, exp %d", v.b, v.e, v.m, g, e)
+		}
+	}
+}
+
+func TestModPowUint16(t *testing.T) {
+	data := []struct{ b, e, m, r uint16 }{
+		{2, 11, 23, 1},     // 23|M11
+		{2, 11, 89, 1},     // 89|M11
+		{2, 23, 47, 1},     // 47|M23
+		{2, 929, 13007, 1}, // 13007|M929
+		{4, 13, 497, 445},
+		{5, 3, 13, 8},
+	}
+
+	for _, v := range data {
+		if g, e := ModPowUint16(v.b, v.e, v.m), v.r; g != e {
+			t.Errorf("b %d e %d m %d: got %d, exp %d", v.b, v.e, v.m, g, e)
+		}
+	}
+}
+
+func TestModPowUint32(t *testing.T) {
+	data := []struct{ b, e, m, r uint32 }{
+		{2, 23, 47, 1},        // 47|M23
+		{2, 67, 193707721, 1}, // 193707721|M67
+		{2, 929, 13007, 1},    // 13007|M929
+		{4, 13, 497, 445},
+		{5, 3, 13, 8},
+	}
+
+	for _, v := range data {
+		if g, e := ModPowUint32(v.b, v.e, v.m), v.r; g != e {
+			t.Errorf("b %d e %d m %d: got %d, exp %d", v.b, v.e, v.m, g, e)
+		}
+	}
+}
+
+func TestModPowUint64(t *testing.T) {
+	data := []struct{ b, e, m, r uint64 }{
+		{2, 23, 47, 1},        // 47|M23
+		{2, 67, 193707721, 1}, // 193707721|M67
+		{2, 929, 13007, 1},    // 13007|M929
+		{4, 13, 497, 445},
+		{5, 3, 13, 8},
+	}
+
+	for _, v := range data {
+		if g, e := ModPowUint64(v.b, v.e, v.m), v.r; g != e {
+			t.Errorf("b %d e %d m %d: got %d, exp %d", v.b, v.e, v.m, g, e)
+		}
+	}
+}
+
+func TestModPowBigInt(t *testing.T) {
+	data := []struct{ b, e, m, r int64 }{
+		{2, 23, 47, 1},        // 47|M23
+		{2, 67, 193707721, 1}, // 193707721|M67
+		{2, 929, 13007, 1},    // 13007|M929
+		{4, 13, 497, 445},
+		{5, 3, 13, 8},
+	}
+
+	for _, v := range data {
+		b, e, m, r := big.NewInt(v.b), big.NewInt(v.e), big.NewInt(v.m), big.NewInt(v.r)
+		if g, e := ModPowBigInt(b, e, m), r; g.Cmp(e) != 0 {
+			t.Errorf("b %s e %s m %s: got %s, exp %s", b, e, m, g, e)
+		}
+	}
+}
+
+func BenchmarkModPowByte(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	type t struct{ b, e, m byte }
+	a := make([]t, N)
+	r := r32()
+	for i := range a {
+		a[i] = t{
+			byte(r.Next()),
+			byte(r.Next()),
+			byte(r.Next() | 1),
+		}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		ModPowByte(v.b, v.e, v.m)
+	}
+}
+
+func BenchmarkModPowUint16(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	type t struct{ b, e, m uint16 }
+	a := make([]t, N)
+	r := r32()
+	for i := range a {
+		a[i] = t{
+			uint16(r.Next()),
+			uint16(r.Next()),
+			uint16(r.Next() | 1),
+		}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		ModPowUint16(v.b, v.e, v.m)
+	}
+}
+
+func BenchmarkModPowUint32(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	type t struct{ b, e, m uint32 }
+	a := make([]t, N)
+	r := r32()
+	for i := range a {
+		a[i] = t{
+			uint32(r.Next()),
+			uint32(r.Next()),
+			uint32(r.Next() | 1),
+		}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		ModPowUint32(v.b, v.e, v.m)
+	}
+}
+
+func BenchmarkModPowUint64(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	type t struct{ b, e, m uint64 }
+	a := make([]t, N)
+	r := r64()
+	for i := range a {
+		a[i] = t{
+			uint64(r.Next().Int64()),
+			uint64(r.Next().Int64()),
+			uint64(r.Next().Int64() | 1),
+		}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		ModPowUint64(v.b, v.e, v.m)
+	}
+}
+
+func BenchmarkModPowBigInt(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	type t struct{ b, e, m *big.Int }
+	a := make([]t, N)
+	mx := big.NewInt(math.MaxInt64)
+	mx.Mul(mx, mx)
+	r, err := NewFCBig(big.NewInt(1), mx, true)
+	if err != nil {
+		b.Fatal(err)
+	}
+	for i := range a {
+		a[i] = t{
+			r.Next(),
+			r.Next(),
+			r.Next(),
+		}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		ModPowBigInt(v.b, v.e, v.m)
 	}
 }

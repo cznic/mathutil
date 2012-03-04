@@ -28,10 +28,32 @@ func findSmallPrime(n uint16) (index int, found bool) {
 	return l, false
 }
 
-// IsPrimeUint16 returns true if n is prime. Typical run time is few hundred nsecs.
-func IsPrimeUint16(n uint16) (isPrime bool) {
+func isPrimeUint16(n uint16) (isPrime bool) {
 	_, isPrime = findSmallPrime(n)
 	return
+}
+
+// IsPrimeUint16 returns true if n is prime. Typical run time is few tens of nsecs.
+func IsPrimeUint16(n uint16) bool {
+	switch {
+	case n < 2 || n&1 == 0:
+		return n == 2
+	case n%3 == 0:
+		return n == 3
+	case n%3 == 0:
+		return n == 3
+	case n%5 == 0:
+		return n == 5
+	case n%7 == 0:
+		return n == 7
+	case n%11 == 0:
+		return n == 11
+	case n%13 == 0:
+		return n == 13 // Benchmarked optimum
+	default:
+		return isPrimeUint16(n)
+	}
+	panic("unreachable")
 }
 
 // NextPrimeUint16 returns first prime > n and true if successful or an undefined value and false if there
@@ -44,29 +66,22 @@ func NextPrimeUint16(n uint16) (p uint16, ok bool) {
 	return smallPrimes[i], true
 }
 
-func probablyPrime(n32, a32 uint32) bool {
-	n, a := uint64(n32), uint64(a32)
-	d, s := n-1, 0
-	for ; d&1 == 0; d, s = d>>1, s+1 {
+func probablyPrime(n, a uint32) bool {
+	e, s := n-1, 0
+	for ; e&1 == 0; e, s = e>>1, s+1 {
 	}
-	// http://en.wikipedia.org/wiki/Modular_exponentiation#Right-to-left_binary_method
-	x := uint64(1)
-	for ; d > 0; a, d = (a*a)%n, d>>1 {
-		if d&1 != 0 {
-			x = (x * a) % n
-		}
-	}
-	if x == 1 || x == n-1 {
+	x := uint64(ModPowUint32(a, e, n))
+	if x == 1 || uint32(x) == n-1 {
 		return true
 	}
 
 	for ; s > 1; s-- {
-		x = (x * x) % n
+		x = (x * x) % uint64(n)
 		if x == 1 {
 			return false
 		}
 
-		if x == n-1 {
+		if uint32(x) == n-1 {
 			return true
 		}
 	}
@@ -78,14 +93,44 @@ func probablyPrime(n32, a32 uint32) bool {
 // http://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test#Deterministic_variants_of_the_test
 func IsPrime(n uint32) bool {
 	switch {
-	case n&1 == 0:
+	case n%2 == 0:
 		return n == 2
+	case n%3 == 0:
+		return n == 3
+	case n%5 == 0:
+		return n == 5
+	case n%7 == 0:
+		return n == 7
+	case n%11 == 0:
+		return n == 11
+	case n%13 == 0:
+		return n == 13
+	case n%17 == 0:
+		return n == 17
+	case n%19 == 0:
+		return n == 19
+	case n%23 == 0:
+		return n == 23
+	case n%29 == 0:
+		return n == 29
+	case n%31 == 0:
+		return n == 31
+	case n%37 == 0:
+		return n == 37
+	case n%41 == 0:
+		return n == 41
+	case n%43 == 0:
+		return n == 43
+	case n%47 == 0:
+		return n == 47
+	case n%53 == 0:
+		return n == 53 // Benchmarked optimum
 	case n < 65536:
 		// use table data
-		return IsPrimeUint16(uint16(n))
+		return isPrimeUint16(uint16(n))
 	case n < 1373653:
 		// it is enough to test a = 2 and 3
-		return n == 3 || probablyPrime(n, 2) && probablyPrime(n, 3)
+		return probablyPrime(n, 2) && probablyPrime(n, 3)
 	case n < 9080191:
 		// it is enough to test a = 31 and 73
 		return probablyPrime(n, 31) && probablyPrime(n, 73)
@@ -141,26 +186,6 @@ func NextPrime(n uint32) (p uint32, ok bool) {
 		}
 
 		d ^= 6
-	}
-	return
-}
-
-// ISqrt returns floor(sqrt(n)). Typical run time is few hundred nsecs.
-func ISqrt(n uint32) (x uint32) {
-	if n == 0 {
-		return
-	}
-
-	if n >= math.MaxUint16*math.MaxUint16 {
-		return 65535
-	}
-
-	var px, nx uint32
-	for x = n; ; px, x = x, nx {
-		nx = (x + n/x) / 2
-		if nx == x || nx == px {
-			break
-		}
 	}
 	return
 }

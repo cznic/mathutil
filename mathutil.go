@@ -8,194 +8,235 @@
 package mathutil
 
 import (
-	"fmt"
 	"math"
+	"math/big"
 )
 
-// FC32 is a full cycle PRNG covering the 32 bit signed integer range.
-// In contrast to full cycle generators shown at e.g. http://en.wikipedia.org/wiki/Full_cycle,
-// this code doesn't produce values at constant delta (mod cycle length).
-// The 32 bit limit is per this implementation, the algorithm used has no intrinsic limit on the cycle size.
-// Properties include:
-//	- Adjustable limits on creation (hi, lo).
-//	- Positionable/randomly accessible (Pos, Seek).
-//	- Repeatable (deterministic).
-//	- Can run forward or backward (Next, Prev).
-//	- For a billion numbers cycle the Next/Prev PRN can be produced in cca 100-150ns.
-//	  That's like 5-10 times slower compared to PRNs generated using the (non FC) rand package.
-type FC32 struct {
-	cycle   int64     // On average: 3 * delta / 2, (HQ: 2 * delta)
-	delta   int64     // hi - lo
-	factors [][]int64 // This trades some space for hopefully a bit of speed (multiple adding vs multiplying).
-	lo      int
-	mods    []int   // pos % set
-	pos     int64   // Within cycle.
-	primes  []int64 // Ordered. ∏ primes == cycle.
-	set     []int64 // Reordered primes (magnitude order bases) according to seed.
+// GCDByte returns the greatest common divisor of a and b.
+//
+// Based on: http://en.wikipedia.org/wiki/Euclidean_algorithm#Implementations
+func GCDByte(a, b byte) byte {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
 }
 
-// NewFC32 returns a newly created FC32 adjusted for the closed interval [lo, hi] or an Error if any.
-// If hq == true then trade some generation time for improved (pseudo)randomness.
-func NewFC32(lo, hi int, hq bool) (r *FC32, err error) {
-	if lo > hi {
-		return nil, fmt.Errorf("invalid range %d > %d", lo, hi)
+// GCD16 returns the greatest common divisor of a and b.
+func GCDUint16(a, b uint16) uint16 {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
+}
+
+// GCD returns the greatest common divisor of a and b.
+func GCDUint32(a, b uint32) uint32 {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
+}
+
+// GCD64 returns the greatest common divisor of a and b.
+func GCDUint64(a, b uint64) uint64 {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
+}
+
+// ISqrt returns floor(sqrt(n)). Typical run time is few hundred nsecs.
+func ISqrt(n uint32) (x uint32) {
+	if n == 0 {
+		return
 	}
 
-	delta := int64(hi) - int64(lo)
-	if delta > math.MaxUint32 {
-		return nil, fmt.Errorf("range out of int32 limits %d, %d", lo, hi)
+	if n >= math.MaxUint16*math.MaxUint16 {
+		return 65535
 	}
 
-	// Find the primorial covering whole delta
-	n, set, p := int64(1), []int64{}, uint32(2)
-	if hq {
-		p++
-	}
-	for {
-		set = append(set, int64(p))
-		n *= int64(p)
-		if n > delta {
+	var px, nx uint32
+	for x = n; ; px, x = x, nx {
+		nx = (x + n/x) / 2
+		if nx == x || nx == px {
 			break
 		}
-		p, _ = NextPrime(p)
 	}
-
-	// Adjust the set so n ∊ [delta, 2 * delta] (HQ: [delta, 3 * delta])
-	// while keeping the cardinality of the set (correlates with the statistic "randomness quality")
-	// at max, i.e. discard atmost one member.
-	i := -1 // no candidate prime
-	if n > 2*(delta+1) {
-		for j, p := range set {
-			q := n / p
-			if q < delta+1 {
-				break
-			}
-
-			i = j // mark the highest candidate prime set index
-		}
-	}
-	if i >= 0 { // shrink the inner cycle
-		n = n / set[i]
-		set = delete(set, i)
-	}
-	r = &FC32{
-		cycle:   n,
-		delta:   delta,
-		factors: make([][]int64, len(set)),
-		lo:      lo,
-		mods:    make([]int, len(set)),
-		primes:  set,
-	}
-	r.Seed(1) // the default seed should be always non zero
 	return
 }
 
-// Cycle reports the length of the inner FCPRNG cycle.
-// Cycle is atmost the double (HQ: triple) of the generator period (hi - lo + 1).
-func (r *FC32) Cycle() int64 {
-	return r.cycle
+// Log2Byte returns log base 2 of n. It's the same as index of the highest
+// bit set in n.  For n == 0 -1 is returned.
+func Log2Byte(n byte) int {
+	return log2[n]
 }
 
-// Next returns the first PRN after Pos.
-func (r *FC32) Next() int {
-	return r.step(1)
-}
-
-// Pos reports the current position within the inner cycle.
-func (r *FC32) Pos() int64 {
-	return r.pos
-}
-
-// Prev return the first PRN before Pos.
-func (r *FC32) Prev() int {
-	return r.step(-1)
-}
-
-// Seed uses the provided seed value to initialize the generator to a deterministic state.
-// A zero seed produces a "canonical" generator with worse randomness than for most non zero seeds.
-// Still, the FC property holds for any seed value.
-func (r *FC32) Seed(seed int64) {
-	u := uint64(seed)
-	r.set = mix(r.primes, &u)
-	n := int64(1)
-	for i, p := range r.set {
-		k := make([]int64, p)
-		v := int64(0)
-		for j := range k {
-			k[j] = v
-			v += n
-		}
-		n *= p
-		r.factors[i] = mix(k, &u)
+// Log2Uint16 returns log base 2 of n. It's the same as index of the highest
+// bit set in n.  For n == 0 -1 is returned.
+func Log2Uint16(n uint16) int {
+	if b := n >> 8; b != 0 {
+		return log2[b] + 8
 	}
+
+	return log2[n]
 }
 
-// Seek sets Pos to |pos| % Cycle.
-func (r *FC32) Seek(pos int64) {
-	if pos < 0 {
-		pos = -pos
+// Log2Uint32 returns log base 2 of n. It's the same as index of the highest
+// bit set in n.  For n == 0 -1 is returned.
+func Log2Uint32(n uint32) int {
+	if b := n >> 24; b != 0 {
+		return log2[b] + 24
 	}
-	pos %= r.cycle
-	r.pos = pos
-	for i, p := range r.set {
-		r.mods[i] = int(pos % p)
+
+	if b := n >> 16; b != 0 {
+		return log2[b] + 16
 	}
+
+	if b := n >> 8; b != 0 {
+		return log2[b] + 8
+	}
+
+	return log2[n]
 }
 
-func (r *FC32) step(dir int) int {
-	for { // avg loops per step: 3/2 (HQ: 2)
-		y := int64(0)
-		pos := r.pos
-		pos += int64(dir)
-		switch {
-		case pos < 0:
-			pos = r.cycle - 1
-		case pos >= r.cycle:
-			pos = 0
+// Log2Uint64 returns log base 2 of n. It's the same as index of the highest
+// bit set in n.  For n == 0 -1 is returned.
+func Log2Uint64(n uint64) int {
+	if b := n >> 56; b != 0 {
+		return log2[b] + 56
+	}
+
+	if b := n >> 48; b != 0 {
+		return log2[b] + 48
+	}
+
+	if b := n >> 40; b != 0 {
+		return log2[b] + 40
+	}
+
+	if b := n >> 32; b != 0 {
+		return log2[b] + 32
+	}
+
+	if b := n >> 24; b != 0 {
+		return log2[b] + 24
+	}
+
+	if b := n >> 16; b != 0 {
+		return log2[b] + 16
+	}
+
+	if b := n >> 8; b != 0 {
+		return log2[b] + 8
+	}
+
+	return log2[n]
+}
+
+// ModPowByte computes (b^e)%m. It panics for m == 0.
+//
+// See also: http://en.wikipedia.org/wiki/Modular_exponentiation#Right-to-left_binary_method
+func ModPowByte(b, e, m byte) byte {
+	r := uint16(1)
+	for b, m := uint16(b), uint16(m); e > 0; b, e = b*b%m, e>>1 {
+		if e&1 == 1 {
+			r = r * b % m
 		}
-		r.pos = pos
-		for i, mod := range r.mods {
-			mod += dir
-			p := int(r.set[i])
-			switch {
-			case mod < 0:
-				mod = p - 1
-			case mod >= p:
-				mod = 0
-			}
-			r.mods[i] = mod
-			y += r.factors[i][mod]
+	}
+	return byte(r)
+}
+
+// ModPowByte computes (b^e)%m. It panics for m == 0.
+func ModPowUint16(b, e, m uint16) uint16 {
+	r := uint32(1)
+	for b, m := uint32(b), uint32(m); e > 0; b, e = b*b%m, e>>1 {
+		if e&1 == 1 {
+			r = r * b % m
 		}
-		if y <= r.delta {
-			return int(y) + r.lo
+	}
+	return uint16(r)
+}
+
+// ModPowUint32 computes (b^e)%m. It panics for m == 0.
+func ModPowUint32(b, e, m uint32) uint32 {
+	r := uint64(1)
+	for b, m := uint64(b), uint64(m); e > 0; b, e = b*b%m, e>>1 {
+		if e&1 == 1 {
+			r = r * b % m
 		}
+	}
+	return uint32(r)
+}
+
+// ModPowUint64 computes (b^e)%m. It panics for m == 0.
+func ModPowUint64(b, e, m uint64) (r uint64) {
+	r, _ = Uint64FromBigInt(modPowBigInt(Uint64ToBigInt(b), Uint64ToBigInt(e), Uint64ToBigInt(m)))
+	return
+}
+
+func modPowBigInt(b, e, m *big.Int) (r *big.Int) {
+	r = big.NewInt(1)
+	for e.Sign() > 0 {
+		if e.Bit(0) == 1 {
+			r.Mod(r.Mul(r, b), m)
+		}
+		e.Rsh(e, 1)
+		b.Mod(b.Mul(b, b), m)
+	}
+	return
+}
+
+// ModPowBigInt computes (b^e)%m. Returns nil for e < 0. It panics for m == 0.
+func ModPowBigInt(b, e, m *big.Int) (r *big.Int) {
+	if e.Sign() < 0 {
+		return
+	}
+
+	return modPowBigInt(big.NewInt(0).Set(b), big.NewInt(0).Set(e), m)
+}
+
+var uint64ToBigIntDelta big.Int
+
+func init() {
+	uint64ToBigIntDelta.SetString("8000000000000000", 16)
+}
+
+// Uint64ToBigInt returns a big.Int set to n.
+func Uint64ToBigInt(n uint64) *big.Int {
+	if n <= math.MaxInt64 {
+		return big.NewInt(int64(n))
+	}
+
+	y := big.NewInt(int64(n - uint64(math.MaxInt64) - 1))
+	return y.Add(y, &uint64ToBigIntDelta) // Benchamrked to be faster than y.SetBit(y, 63, 1)
+}
+
+// Uint64FromBigInt returns (uint64 value of n, true) if 0 <= n <=
+// math.MaxUint64.  Otherwise it returns  (undefined value, false).
+func Uint64FromBigInt(n *big.Int) (uint64, bool) {
+	switch bits := n.BitLen(); {
+	case bits == 0:
+		return 0, true
+	case n.Sign() < 0 || bits > 64:
+		return 0, false
+	case bits <= UintptrBits():
+		return uint64(n.Bits()[0]), true
+	default:
+		b := n.Bits()
+		return uint64(b[1])<<uint(uintptrBits) | uint64(b[0]), true
 	}
 	panic("unreachable")
 }
 
-func delete(set []int64, i int) (y []int64) {
-	for j, v := range set {
-		if j != i {
-			y = append(y, v)
-		}
-	}
-	return
+var uintptrBits int
+
+func init() {
+	x := uint64(math.MaxUint64)
+	uintptrBits = BitLenUintptr(uintptr(x))
 }
 
-func mix(set []int64, seed *uint64) (y []int64) {
-	for len(set) != 0 {
-		*seed = rol(*seed)
-		i := int(*seed % uint64(len(set)))
-		y = append(y, set[i])
-		set = delete(set, i)
-	}
-	return
-}
-
-func rol(u uint64) (y uint64) {
-	y = u << 1
-	if int64(u) < 0 {
-		y |= 1
-	}
-	return
+// UintptrBits returns the bit width of an uintptr at the executing machine.
+func UintptrBits() int {
+	return uintptrBits
 }
