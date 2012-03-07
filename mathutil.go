@@ -12,9 +12,8 @@ import (
 	"math/big"
 )
 
-// GCDByte returns the greatest common divisor of a and b.
-//
-// Based on: http://en.wikipedia.org/wiki/Euclidean_algorithm#Implementations
+// GCDByte returns the greatest common divisor of a and b. Based on:
+// http://en.wikipedia.org/wiki/Euclidean_algorithm#Implementations
 func GCDByte(a, b byte) byte {
 	for b != 0 {
 		a, b = b, a%b
@@ -22,7 +21,7 @@ func GCDByte(a, b byte) byte {
 	return a
 }
 
-// GCD16 returns the greatest common divisor of a and b.
+// GCDUint16 returns the greatest common divisor of a and b.
 func GCDUint16(a, b uint16) uint16 {
 	for b != 0 {
 		a, b = b, a%b
@@ -46,7 +45,7 @@ func GCDUint64(a, b uint64) uint64 {
 	return a
 }
 
-// ISqrt returns floor(sqrt(n)). Typical run time is few hundred nsecs.
+// ISqrt returns floor(sqrt(n)). Typical run time is few hundreds of ns.
 func ISqrt(n uint32) (x uint32) {
 	if n == 0 {
 		return
@@ -199,7 +198,7 @@ func ModPowBigInt(b, e, m *big.Int) (r *big.Int) {
 var uint64ToBigIntDelta big.Int
 
 func init() {
-	uint64ToBigIntDelta.SetString("8000000000000000", 16)
+	uint64ToBigIntDelta.SetBit(&uint64ToBigIntDelta, 63, 1)
 }
 
 // Uint64ToBigInt returns a big.Int set to n.
@@ -239,4 +238,36 @@ func init() {
 // UintptrBits returns the bit width of an uintptr at the executing machine.
 func UintptrBits() int {
 	return uintptrBits
+}
+
+// addUint128_64 returns the uint128 sum of uint64 a and b.
+func addUint128_64(a, b uint64) (hi byte, lo uint64) {
+	lo = a + b
+	if lo < a {
+		hi = 1
+	}
+	return
+}
+
+// mulUint128_64 returns the uint128 bit product of uint64 a and b.
+func mulUint128_64(a, b uint64) (hi, lo uint64) {
+	/*
+		2^(2 W) ahi bhi + 2^W alo bhi + 2^W ahi blo + alo blo
+
+		FEDCBA98 76543210 FEDCBA98 76543210
+		                  ---- alo*blo ---- 
+		         ---- alo*bhi ----
+		         ---- ahi*blo ----
+		---- ahi*bhi ----
+	*/
+	const w = 32
+	const m = 1<<w - 1
+	ahi, bhi, alo, blo := a>>w, b>>w, a&m, b&m
+	lo = alo * blo
+	mid1 := alo * bhi
+	mid2 := ahi * blo
+	c1, lo := addUint128_64(lo, mid1<<w)
+	c2, lo := addUint128_64(lo, mid2<<w)
+	_, hi = addUint128_64(ahi*bhi, mid1>>w+mid2>>w+uint64(c1+c2))
+	return
 }

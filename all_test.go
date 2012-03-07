@@ -512,6 +512,7 @@ func BenchmarkIsPrime(b *testing.B) {
 }
 
 func BenchmarkNextPrime(b *testing.B) {
+	//TODO see bellow @ 64
 	b.StopTimer()
 	n := make([]uint32, b.N)
 	rng := rand.New(rand.NewSource(1))
@@ -521,6 +522,37 @@ func BenchmarkNextPrime(b *testing.B) {
 	b.StartTimer()
 	for _, n := range n {
 		NextPrime(n)
+	}
+}
+
+func BenchmarkIsPrimeUint64(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	a := make([]uint64, N)
+	r := r64()
+	for i := range a {
+		a[i] = uint64(r.Next().Int64())
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		IsPrimeUint64(a[i&(N-1)])
+	}
+}
+
+func BenchmarkNextPrimeUint64(b *testing.B) {
+	b.StopTimer()
+	n := make([]uint64, b.N)
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < b.N; i++ {
+		n[i] = uint64(rng.Int63())
+		if i&1 == 0 {
+			n[i] ^= 1 << 63
+		}
+	}
+	b.StartTimer()
+	for _, n := range n {
+		NextPrimeUint64(n)
 	}
 }
 
@@ -565,6 +597,33 @@ func TestNextPrime2(t *testing.T) {
 		if ok != test.ok || ok && y != test.y {
 			t.Fatalf("x %d, got y %d ok %t, expected y %d ok %t", test.x, y, ok, test.y, test.ok)
 		}
+	}
+}
+
+func TestNextPrimeUint64(t *testing.T) {
+	const (
+		lo = 2000000000000000000
+		hi = 2000000000000100000
+		k  = 2346 // PrimePi(hi)-PrimePi(lo)
+	)
+	n := 0
+	p := uint64(lo) - 1
+	var ok bool
+	for {
+		p0 := p
+		p, ok = NextPrimeUint64(p)
+		if !ok {
+			t.Fatal(p0)
+		}
+
+		if p > hi {
+			break
+		}
+
+		n++
+	}
+	if n != k {
+		t.Fatal(n, k)
 	}
 }
 
@@ -1327,12 +1386,18 @@ func TestUint64ToBigInt(t *testing.T) {
 		g := Uint64ToBigInt(n)
 		e.SetString(fmt.Sprintf("%d", n), 10)
 		if g.Cmp(&e) != 0 {
-			t.Errorf("got %s(0x%x), exp %d(0x%x)", g, g, n, n)
+			t.Fatalf("got %s(0x%x), exp %d(0x%x)", g, g, n, n)
 		}
 	}
 
 	for _, v := range data {
 		f(v)
+	}
+
+	for n := uint64(1); n != 0; n <<= 1 {
+		f(n - 1)
+		f(n)
+		f(n + 1)
 	}
 
 	r := r64()
@@ -1398,6 +1463,13 @@ func TestUint64FromBigInt(t *testing.T) {
 	for _, v := range data {
 		f(v.s, v.e, v.ok)
 	}
+
+	for n := uint64(1); n != 0; n <<= 1 {
+		f(fmt.Sprintf("%d", n-1), n-1, true)
+		f(fmt.Sprintf("%d", n), n, true)
+		f(fmt.Sprintf("%d", n+1), n+1, true)
+	}
+
 	r := r64()
 	for i := 0; i < N; i++ {
 		n := uint64(r.Next().Int64())
@@ -1459,6 +1531,18 @@ func TestModPowUint32(t *testing.T) {
 		{2, 929, 13007, 1},    // 13007|M929
 		{4, 13, 497, 445},
 		{5, 3, 13, 8},
+		{2, 500471, 264248689, 1},
+		{2, 1000249, 112027889, 1},
+		{2, 2000633, 252079759, 1},
+		{2, 3000743, 222054983, 1},
+		{2, 4000741, 1920355681, 1},
+		{2, 5000551, 330036367, 1},
+		{2, 6000479, 1020081431, 1},
+		{2, 7000619, 840074281, 1},
+		{2, 8000401, 624031279, 1},
+		{2, 9000743, 378031207, 1},
+		{2, 10000961, 380036519, 1},
+		{2, 20000723, 40001447, 1},
 	}
 
 	for _, v := range data {
@@ -1475,6 +1559,21 @@ func TestModPowUint64(t *testing.T) {
 		{2, 929, 13007, 1},    // 13007|M929
 		{4, 13, 497, 445},
 		{5, 3, 13, 8},
+		{2, 500471, 264248689, 1}, // m|Me ...
+		{2, 1000249, 112027889, 1},
+		{2, 2000633, 252079759, 1},
+		{2, 3000743, 222054983, 1},
+		{2, 4000741, 1920355681, 1},
+		{2, 5000551, 330036367, 1},
+		{2, 6000479, 1020081431, 1},
+		{2, 7000619, 840074281, 1},
+		{2, 8000401, 624031279, 1},
+		{2, 9000743, 378031207, 1},
+		{2, 10000961, 380036519, 1},
+		{2, 20000723, 40001447, 1},
+		{2, 1000099, 1872347344039, 1},
+
+		{9223372036854775919, 9223372036854776030, 9223372036854776141, 7865333882915297658},
 	}
 
 	for _, v := range data {
@@ -1485,19 +1584,59 @@ func TestModPowUint64(t *testing.T) {
 }
 
 func TestModPowBigInt(t *testing.T) {
-	data := []struct{ b, e, m, r int64 }{
+	data := []struct {
+		b, e int64
+		m    interface{}
+		r    int64
+	}{
 		{2, 23, 47, 1},        // 47|M23
 		{2, 67, 193707721, 1}, // 193707721|M67
 		{2, 929, 13007, 1},    // 13007|M929
 		{4, 13, 497, 445},
 		{5, 3, 13, 8},
+		{2, 500471, 264248689, 1}, // m|Me ...
+		{2, 1000249, 112027889, 1},
+		{2, 2000633, 252079759, 1},
+		{2, 3000743, 222054983, 1},
+		{2, 4000741, 1920355681, 1},
+		{2, 5000551, 330036367, 1},
+		{2, 6000479, 1020081431, 1},
+		{2, 7000619, 840074281, 1},
+		{2, 8000401, 624031279, 1},
+		{2, 9000743, 378031207, 1},
+		{2, 10000961, 380036519, 1},
+		{2, 20000723, 40001447, 1},
+		{2, 100279, "11502865265922183403581252152383", 1},
+
+		{2, 7293457, "533975545077050000610542659519277030089249998649", 1},
 	}
 
 	for _, v := range data {
-		b, e, m, r := big.NewInt(v.b), big.NewInt(v.e), big.NewInt(v.m), big.NewInt(v.r)
-		if g, e := ModPowBigInt(b, e, m), r; g.Cmp(e) != 0 {
+		var m big.Int
+		switch x := v.m.(type) {
+		case int:
+			m.SetInt64(int64(x))
+		case string:
+			m.SetString(x, 10)
+		}
+		b, e, r := big.NewInt(v.b), big.NewInt(v.e), big.NewInt(v.r)
+		if g, e := ModPowBigInt(b, e, &m), r; g.Cmp(e) != 0 {
 			t.Errorf("b %s e %s m %s: got %s, exp %s", b, e, m, g, e)
 		}
+	}
+
+	s := func(n string) *big.Int {
+		i, ok := big.NewInt(0).SetString(n, 10)
+		if !ok {
+			t.Fatal()
+		}
+
+		return i
+	}
+
+	if g, e := ModPowBigInt(
+		s("36893488147419103343"), s("36893488147419103454"), s("36893488147419103565")), s("34853007610367449339"); g.Cmp(e) != 0 {
+		t.Fatal()
 	}
 }
 
@@ -1609,4 +1748,126 @@ func BenchmarkModPowBigInt(b *testing.B) {
 		v := a[i&(N-1)]
 		ModPowBigInt(v.b, v.e, v.m)
 	}
+}
+
+func TestAdd128(t *testing.T) {
+	const N = 1e5
+	r := r64()
+	var mm big.Int
+	for i := 0; i < N; i++ {
+		a, b := uint64(r.Next().Int64()), uint64(r.Next().Int64())
+		aa, bb := Uint64ToBigInt(a), Uint64ToBigInt(b)
+		mhi, mlo := addUint128_64(a, b)
+		m := Uint64ToBigInt(uint64(mhi))
+		m.Lsh(m, 64)
+		m.Add(m, Uint64ToBigInt(mlo))
+		mm.Add(aa, bb)
+		if m.Cmp(&mm) != 0 {
+			t.Fatalf("%d\na %40d\nb %40d\ng %40s %032x\ne %40s %032x", i, a, b, m, m, &mm, &mm)
+		}
+	}
+}
+
+func TestMul128(t *testing.T) {
+	const N = 1e5
+	r := r64()
+	var mm big.Int
+	f := func(a, b uint64) {
+		aa, bb := Uint64ToBigInt(a), Uint64ToBigInt(b)
+		mhi, mlo := mulUint128_64(a, b)
+		m := Uint64ToBigInt(mhi)
+		m.Lsh(m, 64)
+		m.Add(m, Uint64ToBigInt(mlo))
+		mm.Mul(aa, bb)
+		if m.Cmp(&mm) != 0 {
+			t.Fatalf("\na %40d\nb %40d\ng %40s %032x\ne %40s %032x", a, b, m, m, &mm, &mm)
+		}
+	}
+	for i := 0; i < N; i++ {
+		f(uint64(r.Next().Int64()), uint64(r.Next().Int64()))
+	}
+	for x := 0; x <= 1<<9; x++ {
+		for y := 0; y <= 1<<9; y++ {
+			f(math.MaxUint64-uint64(x), math.MaxUint64-uint64(y))
+		}
+	}
+}
+
+func BenchmarkMul128(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	type t struct{ a, b uint64 }
+	a := make([]t, N)
+	r := r64()
+	for i := range a {
+		a[i] = t{
+			uint64(r.Next().Int64()),
+			uint64(r.Next().Int64()),
+		}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		mulUint128_64(v.a, v.b)
+	}
+}
+
+func BenchmarkMul128Big(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	type t struct{ a, b *big.Int }
+	a := make([]t, N)
+	r := r64()
+	for i := range a {
+		a[i] = t{
+			big.NewInt(r.Next().Int64()),
+			big.NewInt(r.Next().Int64()),
+		}
+	}
+	var x big.Int
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := a[i&(N-1)]
+		x.Mul(v.a, v.b)
+	}
+}
+
+func TestIsPrimeUint64(t *testing.T) {
+	f := func(lo, hi uint64, exp int) {
+		got := 0
+		for n := lo; n <= hi; {
+			if IsPrimeUint64(n) {
+				got++
+			}
+			n0 := n
+			n++
+			if n < n0 {
+				break
+			}
+		}
+		if got != exp {
+			t.Fatal(lo, hi, got, exp)
+		}
+	}
+
+	// lo, hi, PrimePi(hi)-PrimePi(lo)
+	f(0, 1e4, 1229)
+	f(1e5, 1e5+1e4, 861)
+	f(1e6, 1e6+1e4, 753)
+	f(1e7, 1e7+1e4, 614)
+	f(1e8, 1e8+1e4, 551)
+	f(1e9, 1e9+1e4, 487)
+	f(1e10, 1e10+1e4, 406)
+	f(1e11, 1e11+1e4, 394)
+	f(1e12, 1e12+1e4, 335)
+	f(1e13, 1e13+1e4, 354)
+	f(1e14, 1e14+1e4, 304)
+	f(1e15, 1e15+1e4, 263)
+	f(1e16, 1e16+1e4, 270)
+	f(1e17, 1e17+1e4, 265)
+	f(1e18, 1e18+1e4, 241)
+	f(1e19, 1e19+1e4, 255)
+	f(1<<64-1e4, 1<<64-1, 218)
 }
