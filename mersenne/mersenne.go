@@ -9,8 +9,9 @@ of their properties.
 Exponent
 
 In this documentatoin the term 'exponent' refers to 'n' of a Mersenne number Mn
-equal to 2^n-1. This package supports only uint32 sized exponents. New supports
-exponents only up to math.MaxInt32.
+equal to 2^n-1. This package supports only uint32 sized exponents. New()
+currently supports exponents only up to math.MaxInt32 (31 bits, up to 256 MB
+required to represent such Mn in memory as a big.Int).
 
 Links
 
@@ -67,14 +68,13 @@ cases zero is returned.
 Every odd d ∊ N divides infinitely many Mersenne numbers. The returned n is the
 exponent of smallest such Mn.
 
-NOTE: The computation of n from a given d performs in O(n). It is thus highly
-recomended to use the 'max' argument to limit the "searched" exponent upper
-bound as appropriate. Otherwise the computation can take a long time as a large
-factor can be a divisor of a Mn with exponent above the uint32 limits.
+NOTE: The computation of n from a given d performs in roughly O(n). It is
+thus highly recomended to use the 'max' argument to limit the "searched"
+exponent upper bound as appropriate. Otherwise the computation can take a long
+time as a large factor can be a divisor of a Mn with exponent above the uint32
+limits.
 
-Implementation is restricted to exponents <= math.MaxInt32.
-
-The FromFactorBigInt function is a Go implementation of the original Will
+The FromFactorBigInt function is a modification of the original Will
 Edgington's "reverse method", discussed here:
 http://tech.groups.yahoo.com/group/primenumbers/message/15061
 */
@@ -83,25 +83,24 @@ func FromFactorBigInt(d *big.Int, max uint32) (n uint32) {
 		return
 	}
 
-	var m, kd big.Int
-	m.Set(d)
-	kd.Set(d)
-	var i, last int
-	for {
-		if m.Bit(i) == 0 {
-			if i == m.BitLen() {
-				return uint32(i)
+	var m big.Int
+	for n < max {
+		m.Add(&m, d)
+		i := 0
+		for ; m.Bit(i) == 1; i++ {
+			if n == math.MaxUint32 {
+				return 0
 			}
 
-			kd.Lsh(&kd, uint(i-last))
-			last = i
-			m.Add(&m, &kd)
+			n++
 		}
-		if uint32(i) == max || i == math.MaxInt32 {
-			return 0
+		m.Rsh(&m, uint(i))
+		if m.Sign() == 0 {
+			if n > max {
+				n = 0
+			}
+			return
 		}
-
-		i++
 	}
-	panic("unreachable")
+	return 0
 }
