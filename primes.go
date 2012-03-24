@@ -66,51 +66,6 @@ func NextPrimeUint16(n uint16) (p uint16, ok bool) {
 	return smallPrimes[i], true
 }
 
-// http://en.wikipedia.org/wiki/Miller-Rabin_primality_test
-func probablyPrime(n, a uint32) bool {
-	e, s := n-1, 0
-	for ; e&1 == 0; e, s = e>>1, s+1 {
-	}
-	x := uint64(ModPowUint32(a, e, n))
-	if x == 1 || uint32(x) == n-1 {
-		return true
-	}
-
-	for ; s > 1; s-- {
-		if x = x * x % uint64(n); x == 1 {
-			return false
-		}
-
-		if uint32(x) == n-1 {
-			return true
-		}
-	}
-	return false
-}
-
-// http://en.wikipedia.org/wiki/Miller-Rabin_primality_test
-func probablyPrime64(n uint64, a uint32) bool {
-	e, s := n-1, 0
-	for ; e&1 == 0; e, s = e>>1, s+1 {
-	}
-	x := ModPowUint64(uint64(a), e, n)
-	if x == 1 || x == n-1 {
-		return true
-	}
-
-	bx, bn := Uint64ToBigInt(x), Uint64ToBigInt(n)
-	for ; s > 1; s-- {
-		if x, _ = Uint64FromBigInt(bx.Mod(bx.Mul(bx, bx), bn)); x == 1 {
-			return false
-		}
-
-		if x == n-1 {
-			return true
-		}
-	}
-	return false
-}
-
 // IsPrime returns true if n is prime. Typical run time is few hundreds  of ns.
 // http://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test#Deterministic_variants_of_the_test
 //
@@ -155,9 +110,12 @@ func IsPrime(n uint32) bool {
 		// use table data
 		return isPrimeUint16(uint16(n))
 	case n < 316349281:
-		return probablyPrime(n, 11000544) && probablyPrime(n, 31481107)
+		return ProbablyPrimeUint32(n, 11000544) &&
+			ProbablyPrimeUint32(n, 31481107)
 	default:
-		return probablyPrime(n, 2) && probablyPrime(n, 1005905886) && probablyPrime(n, 1340600841)
+		return ProbablyPrimeUint32(n, 2) &&
+			ProbablyPrimeUint32(n, 1005905886) &&
+			ProbablyPrimeUint32(n, 1340600841)
 	}
 	panic("unreachable")
 }
@@ -218,19 +176,31 @@ func IsPrimeUint64(n uint64) bool {
 	case n <= math.MaxUint16:
 		return isPrimeUint16(uint16(n))
 	case n <= math.MaxUint32:
-		return probablyPrime(uint32(n), 11000544) && probablyPrime(uint32(n), 31481107)
+		return ProbablyPrimeUint32(uint32(n), 11000544) &&
+			ProbablyPrimeUint32(uint32(n), 31481107)
 	case n < 105936894253:
-		return probablyPrime64(n, 2) && probablyPrime64(n, 1005905886) && probablyPrime64(n, 1340600841)
+		return ProbablyPrimeUint64_32(n, 2) &&
+			ProbablyPrimeUint64_32(n, 1005905886) &&
+			ProbablyPrimeUint64_32(n, 1340600841)
 	case n < 31858317218647:
-		return probablyPrime64(n, 2) && probablyPrime64(n, 642735) && probablyPrime64(n, 553174392) &&
-			probablyPrime64(n, 3046413974)
+		return ProbablyPrimeUint64_32(n, 2) &&
+			ProbablyPrimeUint64_32(n, 642735) &&
+			ProbablyPrimeUint64_32(n, 553174392) &&
+			ProbablyPrimeUint64_32(n, 3046413974)
 	case n < 3071837692357849:
-		return probablyPrime64(n, 2) && probablyPrime64(n, 75088) && probablyPrime64(n, 642735) &&
-			probablyPrime64(n, 203659041) && probablyPrime64(n, 3613982119)
+		return ProbablyPrimeUint64_32(n, 2) &&
+			ProbablyPrimeUint64_32(n, 75088) &&
+			ProbablyPrimeUint64_32(n, 642735) &&
+			ProbablyPrimeUint64_32(n, 203659041) &&
+			ProbablyPrimeUint64_32(n, 3613982119)
 	default:
-		return probablyPrime64(n, 2) && probablyPrime64(n, 325) && probablyPrime64(n, 9375) &&
-			probablyPrime64(n, 28178) && probablyPrime64(n, 450775) && probablyPrime64(n, 9780504) &&
-			probablyPrime64(n, 1795265022)
+		return ProbablyPrimeUint64_32(n, 2) &&
+			ProbablyPrimeUint64_32(n, 325) &&
+			ProbablyPrimeUint64_32(n, 9375) &&
+			ProbablyPrimeUint64_32(n, 28178) &&
+			ProbablyPrimeUint64_32(n, 450775) &&
+			ProbablyPrimeUint64_32(n, 9780504) &&
+			ProbablyPrimeUint64_32(n, 1795265022)
 	}
 	panic("unreachable")
 }
@@ -273,9 +243,13 @@ func NextPrime(n uint32) (p uint32, ok bool) {
 			p%43 == 0 || p%47 == 0 || p%53 == 0 || p%59 == 0 || p%61 == 0 ||
 			p%67 == 0 || p%71 == 0 || p%73 == 0 || p%79 == 0 || p%83 == 0 ||
 			p%89 == 0 || p%97 == 0 || p%101 == 0 || p%103 == 0 || p%107 == 0:
-		case p < 316349281 && probablyPrime(p, 11000544) && probablyPrime(p, 31481107):
+		case p < 316349281 &&
+			ProbablyPrimeUint32(p, 11000544) &&
+			ProbablyPrimeUint32(p, 31481107):
 			return p, true
-		case probablyPrime(p, 2) && probablyPrime(p, 1005905886) && probablyPrime(p, 1340600841):
+		case ProbablyPrimeUint32(p, 2) &&
+			ProbablyPrimeUint32(p, 1005905886) &&
+			ProbablyPrimeUint32(p, 1340600841):
 			return p, true
 		}
 
@@ -341,9 +315,12 @@ type FactorTerm struct {
 	Power uint32 // Term == Prime^Power
 }
 
+// FactorTerms represent a factorization of an integer
+type FactorTerms []FactorTerm
+
 // FactorInt returns prime factorization of n > 1 or nil otherwise.
 // Resulting factors are ordered by Prime. Typical run time is < 10 µs.
-func FactorInt(n uint32) (f []FactorTerm) {
+func FactorInt(n uint32) (f FactorTerms) {
 	switch {
 	case n < 2:
 		return
@@ -376,4 +353,34 @@ func FactorInt(n uint32) (f []FactorTerm) {
 		w++
 	}
 	return f[:w]
+}
+
+// PrimorialProductsUint32 returns a slice of numbers in [lo, hi] which are a
+// product of max 'max' primorials. The slice is not sorted. 
+//
+// See also: http://en.wikipedia.org/wiki/Primorial
+func PrimorialProductsUint32(lo, hi, max uint32) (r []uint32) {
+	lo64, hi64 := int64(lo), int64(hi)
+	if max > 31 { // N/A
+		max = 31
+	}
+
+	var f func(int64, int64, uint32)
+	f = func(n, p int64, emax uint32) {
+		e := uint32(1)
+		for n <= hi64 && e <= emax {
+			n *= p
+			if n >= lo64 && n <= hi64 {
+				r = append(r, uint32(n))
+			}
+			if n < hi64 {
+				p, _ := NextPrime(uint32(p))
+				f(n, int64(p), e)
+			}
+			e++
+		}
+	}
+
+	f(1, 2, max)
+	return
 }

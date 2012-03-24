@@ -13,6 +13,7 @@ import (
 	"math/rand"
 	"runtime"
 	"sort"
+	"sync"
 	"testing"
 )
 
@@ -28,6 +29,7 @@ func r32() *FC32 {
 var (
 	r64lo = big.NewInt(math.MinInt64)
 	r64hi = big.NewInt(math.MaxInt64)
+	_3    = big.NewInt(3)
 )
 
 func r64() *FCBig {
@@ -267,7 +269,6 @@ func BenchmarkFCBig1e18(b *testing.B) {
 
 var (
 	big0 = big.NewInt(0)
-	big1 = big.NewInt(1)
 )
 
 func TestBig0(t *testing.T) {
@@ -280,7 +281,7 @@ func TestBig0(t *testing.T) {
 		hi.SetInt64(n - 1)
 		period.Set(hi)
 		period.Sub(period, lo)
-		period.Add(period, big1)
+		period.Add(period, _1)
 		r, err := NewFCBig(lo, hi, false)
 		if err != nil {
 			t.Fatal(err)
@@ -298,7 +299,7 @@ func TestBig0(t *testing.T) {
 		hi.SetInt64(n - 1)
 		period.Set(hi)
 		period.Sub(period, lo)
-		period.Add(period, big1)
+		period.Add(period, _1)
 		r, err := NewFCBig(lo, hi, true)
 		if err != nil {
 			t.Fatal(err)
@@ -1494,6 +1495,20 @@ func BenchmarkUint64FromBigInt(b *testing.B) {
 
 func TestModPowByte(t *testing.T) {
 	data := []struct{ b, e, m, r byte }{
+		{0, 1, 1, 0},
+		{0, 2, 1, 0},
+		{0, 3, 1, 0},
+
+		{1, 0, 1, 0},
+		{1, 1, 1, 0},
+		{1, 2, 1, 0},
+		{1, 3, 1, 0},
+
+		{2, 0, 1, 0},
+		{2, 1, 1, 0},
+		{2, 2, 1, 0},
+		{2, 3, 1, 0},
+
 		{2, 11, 23, 1}, // 23|M11
 		{2, 11, 89, 1}, // 89|M11
 		{2, 23, 47, 1}, // 47|M23
@@ -1509,6 +1524,20 @@ func TestModPowByte(t *testing.T) {
 
 func TestModPowUint16(t *testing.T) {
 	data := []struct{ b, e, m, r uint16 }{
+		{0, 1, 1, 0},
+		{0, 2, 1, 0},
+		{0, 3, 1, 0},
+
+		{1, 0, 1, 0},
+		{1, 1, 1, 0},
+		{1, 2, 1, 0},
+		{1, 3, 1, 0},
+
+		{2, 0, 1, 0},
+		{2, 1, 1, 0},
+		{2, 2, 1, 0},
+		{2, 3, 1, 0},
+
 		{2, 11, 23, 1},     // 23|M11
 		{2, 11, 89, 1},     // 89|M11
 		{2, 23, 47, 1},     // 47|M23
@@ -1526,6 +1555,20 @@ func TestModPowUint16(t *testing.T) {
 
 func TestModPowUint32(t *testing.T) {
 	data := []struct{ b, e, m, r uint32 }{
+		{0, 1, 1, 0},
+		{0, 2, 1, 0},
+		{0, 3, 1, 0},
+
+		{1, 0, 1, 0},
+		{1, 1, 1, 0},
+		{1, 2, 1, 0},
+		{1, 3, 1, 0},
+
+		{2, 0, 1, 0},
+		{2, 1, 1, 0},
+		{2, 2, 1, 0},
+		{2, 3, 1, 0},
+
 		{2, 23, 47, 1},        // 47|M23
 		{2, 67, 193707721, 1}, // 193707721|M67
 		{2, 929, 13007, 1},    // 13007|M929
@@ -1554,6 +1597,20 @@ func TestModPowUint32(t *testing.T) {
 
 func TestModPowUint64(t *testing.T) {
 	data := []struct{ b, e, m, r uint64 }{
+		{0, 1, 1, 0},
+		{0, 2, 1, 0},
+		{0, 3, 1, 0},
+
+		{1, 0, 1, 0},
+		{1, 1, 1, 0},
+		{1, 2, 1, 0},
+		{1, 3, 1, 0},
+
+		{2, 0, 1, 0},
+		{2, 1, 1, 0},
+		{2, 2, 1, 0},
+		{2, 3, 1, 0},
+
 		{2, 23, 47, 1},        // 47|M23
 		{2, 67, 193707721, 1}, // 193707721|M67
 		{2, 929, 13007, 1},    // 13007|M929
@@ -1589,6 +1646,20 @@ func TestModPowBigInt(t *testing.T) {
 		m    interface{}
 		r    int64
 	}{
+		{0, 1, 1, 0},
+		{0, 2, 1, 0},
+		{0, 3, 1, 0},
+
+		{1, 0, 1, 0},
+		{1, 1, 1, 0},
+		{1, 2, 1, 0},
+		{1, 3, 1, 0},
+
+		{2, 0, 1, 0},
+		{2, 1, 1, 0},
+		{2, 2, 1, 0},
+		{2, 3, 1, 0},
+
 		{2, 23, 47, 1},        // 47|M23
 		{2, 67, 193707721, 1}, // 193707721|M67
 		{2, 929, 13007, 1},    // 13007|M929
@@ -1648,9 +1719,9 @@ func BenchmarkModPowByte(b *testing.B) {
 	r := r32()
 	for i := range a {
 		a[i] = t{
-			byte(r.Next()),
-			byte(r.Next()),
-			byte(r.Next() | 1),
+			byte(r.Next() | 2),
+			byte(r.Next() | 2),
+			byte(r.Next() | 2),
 		}
 	}
 	runtime.GC()
@@ -1669,9 +1740,9 @@ func BenchmarkModPowUint16(b *testing.B) {
 	r := r32()
 	for i := range a {
 		a[i] = t{
-			uint16(r.Next()),
-			uint16(r.Next()),
-			uint16(r.Next() | 1),
+			uint16(r.Next() | 2),
+			uint16(r.Next() | 2),
+			uint16(r.Next() | 2),
 		}
 	}
 	runtime.GC()
@@ -1690,9 +1761,9 @@ func BenchmarkModPowUint32(b *testing.B) {
 	r := r32()
 	for i := range a {
 		a[i] = t{
-			uint32(r.Next()),
-			uint32(r.Next()),
-			uint32(r.Next() | 1),
+			uint32(r.Next() | 2),
+			uint32(r.Next() | 2),
+			uint32(r.Next() | 2),
 		}
 	}
 	runtime.GC()
@@ -1711,9 +1782,9 @@ func BenchmarkModPowUint64(b *testing.B) {
 	r := r64()
 	for i := range a {
 		a[i] = t{
-			uint64(r.Next().Int64()),
-			uint64(r.Next().Int64()),
-			uint64(r.Next().Int64() | 1),
+			uint64(r.Next().Int64() | 2),
+			uint64(r.Next().Int64() | 2),
+			uint64(r.Next().Int64() | 2),
 		}
 	}
 	runtime.GC()
@@ -1731,7 +1802,7 @@ func BenchmarkModPowBigInt(b *testing.B) {
 	a := make([]t, N)
 	mx := big.NewInt(math.MaxInt64)
 	mx.Mul(mx, mx)
-	r, err := NewFCBig(big.NewInt(1), mx, true)
+	r, err := NewFCBig(big.NewInt(2), mx, true)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -1870,4 +1941,401 @@ func TestIsPrimeUint64(t *testing.T) {
 	f(1e18, 1e18+1e4, 241)
 	f(1e19, 1e19+1e4, 255)
 	f(1<<64-1e4, 1<<64-1, 218)
+}
+
+func TestProbablyPrimeUint32(t *testing.T) {
+	f := func(n, firstFail uint32, primes []uint32) {
+		for ; n <= firstFail; n += 2 {
+			prp := true
+			for _, a := range primes {
+				if !ProbablyPrimeUint32(n, a) {
+					prp = false
+					break
+				}
+			}
+			if prp != IsPrime(n) && n != firstFail {
+				t.Fatal(n)
+			}
+		}
+	}
+	if !ProbablyPrimeUint32(5, 2) {
+		t.Fatal()
+	}
+	if !ProbablyPrimeUint32(7, 2) {
+		t.Fatal()
+	}
+	if ProbablyPrimeUint32(9, 2) {
+		t.Fatal()
+	}
+	if !ProbablyPrimeUint32(11, 2) {
+		t.Fatal()
+	}
+	// http://oeis.org/A014233
+	f(5, 2047, []uint32{2})
+	f(2047, 1373653, []uint32{2, 3})
+	f(1373653, 25326001, []uint32{2, 3, 5})
+}
+
+func BenchmarkProbablyPrimeUint32(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	type t struct{ n, a uint32 }
+	data := make([]t, N)
+	r := r32()
+	for i := range data {
+		n := uint32(r.Next()) | 1
+		if n <= 3 {
+			n += 5
+		}
+		a := uint32(r.Next())
+		if a <= 1 {
+			a += 2
+		}
+		data[i] = t{n, a}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := data[i&(N-1)]
+		ProbablyPrimeUint32(v.n, v.a)
+	}
+}
+
+func TestProbablyPrimeUint64_32(t *testing.T) {
+	f := func(n, firstFail uint64, primes []uint32) {
+		for ; n <= firstFail; n += 2 {
+			prp := true
+			for _, a := range primes {
+				if !ProbablyPrimeUint64_32(n, a) {
+					prp = false
+					break
+				}
+			}
+			if prp != IsPrimeUint64(n) && n != firstFail {
+				t.Fatal(n)
+			}
+		}
+	}
+	if !ProbablyPrimeUint64_32(5, 2) {
+		t.Fatal()
+	}
+	if !ProbablyPrimeUint64_32(7, 2) {
+		t.Fatal()
+	}
+	if ProbablyPrimeUint64_32(9, 2) {
+		t.Fatal()
+	}
+	if !ProbablyPrimeUint64_32(11, 2) {
+		t.Fatal()
+	}
+	// http://oeis.org/A014233
+	f(5, 2047, []uint32{2})
+	f(2047, 1373653, []uint32{2, 3})
+}
+
+func BenchmarkProbablyPrimeUint64_32(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	type t struct {
+		n uint64
+		a uint32
+	}
+	data := make([]t, N)
+	r := r32()
+	r2 := r64()
+	for i := range data {
+		var n uint64
+		for n <= 3 {
+			n = uint64(r2.Next().Int64()) | 1
+		}
+		var a uint32
+		for a <= 1 {
+			a = uint32(r.Next())
+		}
+		data[i] = t{n, a}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := data[i&(N-1)]
+		ProbablyPrimeUint64_32(v.n, v.a)
+	}
+}
+
+var _2 = big.NewInt(2)
+
+func TestProbablyPrimeBigInt_32(t *testing.T) {
+	f := func(n0, firstFail0 uint64, primes []uint32) {
+		n, firstFail := Uint64ToBigInt(n0), Uint64ToBigInt(firstFail0)
+		for ; n.Cmp(firstFail) <= 0; n.Add(n, _2) {
+			prp := true
+			for _, a := range primes {
+				if !ProbablyPrimeBigInt_32(n, a) {
+					prp = false
+					break
+				}
+			}
+			if prp != IsPrimeUint64(n0) && n0 != firstFail0 {
+				t.Fatal(n)
+			}
+			n0 += 2
+		}
+	}
+	if !ProbablyPrimeBigInt_32(big.NewInt(5), 2) {
+		t.Fatal()
+	}
+	if !ProbablyPrimeBigInt_32(big.NewInt(7), 2) {
+		t.Fatal()
+	}
+	if ProbablyPrimeBigInt_32(big.NewInt(9), 2) {
+		t.Fatal()
+	}
+	if !ProbablyPrimeBigInt_32(big.NewInt(11), 2) {
+		t.Fatal()
+	}
+	// http://oeis.org/A014233
+	f(5, 2047, []uint32{2})
+	f(2047, 1373653, []uint32{2, 3})
+}
+
+func BenchmarkProbablyPrimeBigInt_32(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	type t struct {
+		n *big.Int
+		a uint32
+	}
+	data := make([]t, N)
+	r := r32()
+	r2 := r64()
+	for i := range data {
+		var n uint64
+		for n <= 3 {
+			n = uint64(r2.Next().Int64()) | 1
+		}
+		var a uint32
+		for a <= 1 {
+			a = uint32(r.Next())
+		}
+		data[i] = t{Uint64ToBigInt(n), a}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := data[i&(N-1)]
+		ProbablyPrimeBigInt_32(v.n, v.a)
+	}
+}
+
+func TestProbablyPrimeBigInt(t *testing.T) {
+	f := func(n0, firstFail0 uint64, primes []uint32) {
+		n, firstFail := Uint64ToBigInt(n0), Uint64ToBigInt(firstFail0)
+		for ; n.Cmp(firstFail) <= 0; n.Add(n, _2) {
+			prp := true
+			var a big.Int
+			for _, a0 := range primes {
+				a.SetInt64(int64(a0))
+				if !ProbablyPrimeBigInt(n, &a) {
+					prp = false
+					break
+				}
+			}
+			if prp != IsPrimeUint64(n0) && n0 != firstFail0 {
+				t.Fatal(n)
+			}
+			n0 += 2
+		}
+	}
+	if !ProbablyPrimeBigInt(big.NewInt(5), _2) {
+		t.Fatal()
+	}
+	if !ProbablyPrimeBigInt(big.NewInt(7), _2) {
+		t.Fatal()
+	}
+	if ProbablyPrimeBigInt(big.NewInt(9), _2) {
+		t.Fatal()
+	}
+	if !ProbablyPrimeBigInt(big.NewInt(11), _2) {
+		t.Fatal()
+	}
+	// http://oeis.org/A014233
+	f(5, 2047, []uint32{2})
+	f(2047, 1373653, []uint32{2, 3})
+}
+
+var once2059 sync.Once
+
+func BenchmarkProbablyPrimeBigInt64(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	once2059.Do(func() { b.Log("64 bit n, 64 bit a\n") })
+	type t struct {
+		n, a *big.Int
+	}
+	data := make([]t, N)
+	r := r64()
+	for i := range data {
+		var n uint64
+		for n <= 3 {
+			n = uint64(r.Next().Int64()) | 1
+		}
+		var a uint64
+		for a <= 1 {
+			a = uint64(r.Next().Int64())
+		}
+		data[i] = t{Uint64ToBigInt(n), Uint64ToBigInt(uint64(a))}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := data[i&(N-1)]
+		ProbablyPrimeBigInt(v.n, v.a)
+	}
+}
+
+var once2090 sync.Once
+
+func BenchmarkProbablyPrimeBigInt128(b *testing.B) {
+	const N = 1 << 16
+	b.StopTimer()
+	once2090.Do(func() { b.Log("128 bit n, 128 bit a\n") })
+	type t struct {
+		n, a *big.Int
+	}
+	data := make([]t, N)
+	r := r64()
+	for i := range data {
+		n := Uint64ToBigInt(uint64(r.Next().Int64()))
+		n.Lsh(n, 64)
+		n.Add(n, Uint64ToBigInt(uint64(r.Next().Int64())|1))
+		a := Uint64ToBigInt(uint64(r.Next().Int64()))
+		a.Lsh(a, 64)
+		a.Add(a, Uint64ToBigInt(uint64(r.Next().Int64())))
+		data[i] = t{n, a}
+	}
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		v := data[i&(N-1)]
+		ProbablyPrimeBigInt(v.n, v.a)
+	}
+}
+
+func TestQCmpUint32(t *testing.T) {
+	const N = 6e4
+	r := r32()
+	var x, y big.Rat
+	for i := 0; i < N; i++ {
+		a, b, c, d := uint32(r.Next()), uint32(r.Next()), uint32(r.Next()), uint32(r.Next())
+		x.SetFrac64(int64(a), int64(b))
+		y.SetFrac64(int64(c), int64(d))
+		if g, e := QCmpUint32(a, b, c, d), x.Cmp(&y); g != e {
+			t.Fatal(a, b, c, d, g, e)
+		}
+	}
+}
+
+func TestQScaleUint32(t *testing.T) {
+	const N = 4e4
+	r := r32()
+	var x, y big.Rat
+	var a uint64
+	var b, c, d uint32
+	for i := 0; i < N; i++ {
+		for {
+			b, c, d = uint32(r.Next()), uint32(r.Next()), uint32(r.Next())
+			a = QScaleUint32(b, c, d)
+			if a <= math.MaxInt64 {
+				break
+			}
+		}
+		x.SetFrac64(int64(a), int64(b))
+		y.SetFrac64(int64(c), int64(d))
+		if g := x.Cmp(&y); g < 0 {
+			t.Fatal(a, b, c, d, g, "expexted 1 or 0")
+		}
+
+		if a != 0 {
+			x.SetFrac64(int64(a-1), int64(b))
+			if g := x.Cmp(&y); g > 0 {
+				t.Fatal(a, b, c, d, g, "expected -1 or 0")
+			}
+		}
+	}
+}
+
+var smalls = []uint32{2, 3, 5, 7, 11, 13, 17, 19, 23, 29}
+
+func isPrimorialProduct(t FactorTerms, maxp uint32) bool {
+	if len(t) == 0 {
+		return false
+	}
+
+	pmax := uint32(32)
+	for i, v := range t {
+		if v.Prime != smalls[i] || v.Power > pmax || v.Power > maxp {
+			return false
+		}
+		pmax = v.Power
+	}
+	return true
+}
+
+func TestPrimorialProductsUint32(t *testing.T) {
+	r := PrimorialProductsUint32(2*3*5*7*11*13*17*19+1, math.MaxUint32, 1)
+	if len(r) != 1 {
+		t.Fatal(len(r))
+	}
+
+	if r[0] != 2*3*5*7*11*13*17*19*23 {
+		t.Fatal(r[0])
+	}
+
+	r = PrimorialProductsUint32(0, math.MaxUint32, math.MaxUint32)
+	if g, e := len(r), 1679; g != e {
+		t.Fatal(g, e)
+	}
+
+	m := map[uint32]struct{}{}
+	for _, v := range r {
+		if _, ok := m[v]; ok {
+			t.Fatal(v)
+		}
+
+		m[v] = struct{}{}
+	}
+
+	for lo := uint32(0); lo < 5e4; lo += 1e3 {
+		hi := 1e2 * lo
+		for max := uint32(0); max <= 32; max++ {
+			m := map[uint32]struct{}{}
+			for i, v := range PrimorialProductsUint32(lo, hi, max) {
+				f := FactorInt(v)
+				if v < lo || v > hi {
+					t.Fatal(lo, hi, max, v)
+				}
+
+				if _, ok := m[v]; ok {
+					t.Fatal(i, lo, hi, max, v, f)
+				}
+
+				m[v] = struct{}{}
+				if !isPrimorialProduct(f, max) {
+					t.Fatal(i, v)
+				}
+
+				for _, v := range f {
+					if v.Power > max {
+						t.Fatal(i, v, f)
+					}
+				}
+			}
+		}
+	}
+}
+
+func BenchmarkPrimorialProductsUint32(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		PrimorialProductsUint32(0, math.MaxUint32, math.MaxUint32)
+	}
 }

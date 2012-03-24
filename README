@@ -1,8 +1,10 @@
 This is a goinstall-able mirror of modified code already published at:
 http://git.nic.cz/redmine/projects/gornd/repository
 
-Online godoc documentation for this package available at:
-http://gopkgdoc.appspot.com/pkg/github.com/cznic/mathutil
+Packages in this repository:
 
-Installation:
-$ go get github.com/cznic/mathutil
+Install: $ go get github.com/cznic/mathutil
+Godocs:  http://gopkgdoc.appspot.com/pkg/github.com/cznic/mathutil
+
+Install: $ go get github.com/cznic/mathutil/mersenne
+Godocs:  http://gopkgdoc.appspot.com/pkg/github.com/cznic/mathutil/mersenne

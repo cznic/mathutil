@@ -4,13 +4,16 @@
 
 // blame: jnml, labs.nic.cz
 
-// Package mathutil provides utilities supplementing the standard 'math' and 'rand' packages.
+// Package mathutil provides utilities supplementing the standard 'math',
+// 'math/rand' and 'sort' packages.
 package mathutil
 
 import (
 	"math"
 	"math/big"
 )
+
+var _1 = big.NewInt(1)
 
 // GCDByte returns the greatest common divisor of a and b. Based on:
 // http://en.wikipedia.org/wiki/Euclidean_algorithm#Implementations
@@ -133,10 +136,18 @@ func Log2Uint64(n uint64) int {
 	return log2[n]
 }
 
-// ModPowByte computes (b^e)%m. It panics for m == 0.
+// ModPowByte computes (b^e)%m. It panics for m == 0 || b == e == 0.
 //
 // See also: http://en.wikipedia.org/wiki/Modular_exponentiation#Right-to-left_binary_method
 func ModPowByte(b, e, m byte) byte {
+	if b == 0 && e == 0 {
+		panic(0)
+	}
+
+	if m == 1 {
+		return 0
+	}
+
 	r := uint16(1)
 	for b, m := uint16(b), uint16(m); e > 0; b, e = b*b%m, e>>1 {
 		if e&1 == 1 {
@@ -146,8 +157,16 @@ func ModPowByte(b, e, m byte) byte {
 	return byte(r)
 }
 
-// ModPowByte computes (b^e)%m. It panics for m == 0.
+// ModPowByte computes (b^e)%m. It panics for m == 0 || b == e == 0.
 func ModPowUint16(b, e, m uint16) uint16 {
+	if b == 0 && e == 0 {
+		panic(0)
+	}
+
+	if m == 1 {
+		return 0
+	}
+
 	r := uint32(1)
 	for b, m := uint32(b), uint32(m); e > 0; b, e = b*b%m, e>>1 {
 		if e&1 == 1 {
@@ -157,8 +176,16 @@ func ModPowUint16(b, e, m uint16) uint16 {
 	return uint16(r)
 }
 
-// ModPowUint32 computes (b^e)%m. It panics for m == 0.
+// ModPowUint32 computes (b^e)%m. It panics for m == 0 || b == e == 0.
 func ModPowUint32(b, e, m uint32) uint32 {
+	if b == 0 && e == 0 {
+		panic(0)
+	}
+
+	if m == 1 {
+		return 0
+	}
+
 	r := uint64(1)
 	for b, m := uint64(b), uint64(m); e > 0; b, e = b*b%m, e>>1 {
 		if e&1 == 1 {
@@ -168,26 +195,41 @@ func ModPowUint32(b, e, m uint32) uint32 {
 	return uint32(r)
 }
 
-// ModPowUint64 computes (b^e)%m. It panics for m == 0.
+// ModPowUint64 computes (b^e)%m. It panics for m == 0 || b == e == 0.
 func ModPowUint64(b, e, m uint64) (r uint64) {
+	if b == 0 && e == 0 {
+		panic(0)
+	}
+
+	if m == 1 {
+		return 0
+	}
+
 	r, _ = Uint64FromBigInt(modPowBigInt(Uint64ToBigInt(b), Uint64ToBigInt(e), Uint64ToBigInt(m)))
 	return
 }
 
 func modPowBigInt(b, e, m *big.Int) (r *big.Int) {
 	r = big.NewInt(1)
-	for e.Sign() > 0 {
-		if e.Bit(0) == 1 {
+	for i, n := 0, e.BitLen(); i < n; i++ {
+		if e.Bit(i) != 0 {
 			r.Mod(r.Mul(r, b), m)
 		}
-		e.Rsh(e, 1)
 		b.Mod(b.Mul(b, b), m)
 	}
 	return
 }
 
-// ModPowBigInt computes (b^e)%m. Returns nil for e < 0. It panics for m == 0.
+// ModPowBigInt computes (b^e)%m. Returns nil for e < 0. It panics for m == 0 || b == e == 0.
 func ModPowBigInt(b, e, m *big.Int) (r *big.Int) {
+	if b.Sign() == 0 && e.Sign() == 0 {
+		panic(0)
+	}
+
+	if m.Cmp(_1) == 0 {
+		return big.NewInt(0)
+	}
+
 	if e.Sign() < 0 {
 		return
 	}
@@ -270,4 +312,138 @@ func mulUint128_64(a, b uint64) (hi, lo uint64) {
 	c2, lo := addUint128_64(lo, mid2<<w)
 	_, hi = addUint128_64(ahi*bhi, mid1>>w+mid2>>w+uint64(c1+c2))
 	return
+}
+
+/*
+ProbablyPrimeUint32 returns true if n is prime or n is a pseudoprime to base a.
+It implements the Miller-Rabin primality test for one specific value of 'a' and
+k == 1. 
+
+Wrt pseudocode shown at
+http://en.wikipedia.org/wiki/Miller-Rabin_primality_test#Algorithm_and_running_time
+
+ Input: n > 3, an odd integer to be tested for primality;
+ Input: k, a parameter that determines the accuracy of the test
+ Output: composite if n is composite, otherwise probably prime
+ write n − 1 as 2^s·d with d odd by factoring powers of 2 from n − 1
+ LOOP: repeat k times:
+    pick a random integer a in the range [2, n − 2]
+    x ← a^d mod n
+    if x = 1 or x = n − 1 then do next LOOP
+    for r = 1 .. s − 1
+       x ← x^2 mod n
+       if x = 1 then return composite
+       if x = n − 1 then do next LOOP
+    return composite
+ return probably prime
+
+... this function behaves like passing 1 for 'k' and additionaly a
+fixed/non-random 'a'.  Otherwise it's the same algorithm.
+
+See also: http://mathworld.wolfram.com/Rabin-MillerStrongPseudoprimeTest.html
+*/
+func ProbablyPrimeUint32(n, a uint32) bool {
+	d, s := n-1, 0
+	for ; d&1 == 0; d, s = d>>1, s+1 {
+	}
+	x := uint64(ModPowUint32(a, d, n))
+	if x == 1 || uint32(x) == n-1 {
+		return true
+	}
+
+	for ; s > 1; s-- {
+		if x = x * x % uint64(n); x == 1 {
+			return false
+		}
+
+		if uint32(x) == n-1 {
+			return true
+		}
+	}
+	return false
+}
+
+// ProbablyPrimeUint64_32 returns true if n is prime or n is a pseudoprime to
+// base a. It implements the Miller-Rabin primality test for one specific value
+// of 'a' and k == 1.  See also ProbablyPrimeUint32.
+func ProbablyPrimeUint64_32(n uint64, a uint32) bool {
+	d, s := n-1, 0
+	for ; d&1 == 0; d, s = d>>1, s+1 {
+	}
+	x := ModPowUint64(uint64(a), d, n)
+	if x == 1 || x == n-1 {
+		return true
+	}
+
+	bx, bn := Uint64ToBigInt(x), Uint64ToBigInt(n)
+	for ; s > 1; s-- {
+		if x, _ = Uint64FromBigInt(bx.Mod(bx.Mul(bx, bx), bn)); x == 1 {
+			return false
+		}
+
+		if x == n-1 {
+			return true
+		}
+	}
+	return false
+}
+
+// ProbablyPrimeBigInt_32 returns true if n is prime or n is a pseudoprime to
+// base a. It implements the Miller-Rabin primality test for one specific value
+// of 'a' and k == 1.  See also ProbablyPrimeUint32.
+func ProbablyPrimeBigInt_32(n *big.Int, a uint32) bool {
+	var d big.Int
+	d.Set(n)
+	d.Sub(&d, _1) // d <- n-1
+	s := 0
+	for ; d.Bit(s) == 0; s++ {
+	}
+	nMinus1 := big.NewInt(0).Set(&d)
+	d.Rsh(&d, uint(s))
+
+	x := ModPowBigInt(big.NewInt(int64(a)), &d, n)
+	if x.Cmp(_1) == 0 || x.Cmp(nMinus1) == 0 {
+		return true
+	}
+
+	for ; s > 1; s-- {
+		if x = x.Mod(x.Mul(x, x), n); x.Cmp(_1) == 0 {
+			return false
+		}
+
+		if x.Cmp(nMinus1) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// ProbablyPrimeBigInt returns true if n is prime or n is a pseudoprime to base
+// a. It implements the Miller-Rabin primality test for one specific value of
+// 'a' and k == 1.  See also ProbablyPrimeUint32.
+func ProbablyPrimeBigInt(n, a *big.Int) bool {
+	var d big.Int
+	d.Set(n)
+	d.Sub(&d, _1) // d <- n-1
+	s := 0
+	for ; d.Bit(s) == 0; s++ {
+	}
+	nMinus1 := big.NewInt(0).Set(&d)
+	d.Rsh(&d, uint(s))
+
+	x := ModPowBigInt(a, &d, n)
+	if x.Cmp(_1) == 0 || x.Cmp(nMinus1) == 0 {
+		return true
+	}
+
+	for ; s > 1; s-- {
+		if x = x.Mod(x.Mul(x, x), n); x.Cmp(_1) == 0 {
+			return false
+		}
+
+		if x.Cmp(nMinus1) == 0 {
+			return true
+		}
+	}
+	return false
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/cznic/mathutil"
 	"math"
 	"math/big"
+	"math/rand"
 	"runtime"
 	"sync"
 	"testing"
@@ -577,4 +578,361 @@ func BenchmarkFromFactorBigInt137b_1e5(b *testing.B) {
 
 func BenchmarkFromFactorBigInt137b_1e6(b *testing.B) {
 	benchmarkFromFactorBigInt(b, f137b, 1e6)
+}
+func TestMod(t *testing.T) {
+	const N = 1e4
+	data := []struct {
+		mod, n int64
+		exp    uint32
+	}{
+		{0, 0x00, 3},
+		{1, 0x01, 3},
+		{3, 0x03, 3},
+		{0, 0x07, 3},
+		{1, 0x0f, 3},
+		{3, 0x1f, 3},
+		{0, 0x3f, 3},
+		{1, 0x7f, 3},
+		{3, 0xff, 3},
+		{0, 0x1ff, 3},
+	}
+
+	var mod, n big.Int
+	for _, v := range data {
+		n.SetInt64(v.n)
+		p := Mod(&mod, &n, v.exp)
+		if p != &mod {
+			t.Fatal()
+		}
+
+		if g, e := mod.Int64(), v.mod; g != e {
+			t.Fatal(v.n, v.exp, g, e)
+		}
+	}
+
+	f := func(in int64, exp uint32) {
+		n.SetInt64(in)
+		mod.Mod(&n, New(exp))
+		e := mod.Int64()
+		Mod(&mod, &n, exp)
+		g := mod.Int64()
+		if g != e {
+			t.Fatal(in, exp, g, e)
+		}
+	}
+
+	r32, _ := mathutil.NewFC32(1, 1e6, true)
+	r64, _ := mathutil.NewFCBig(_0, mathutil.Uint64ToBigInt(math.MaxInt64), true)
+	for i := 0; i < N; i++ {
+		f(r64.Next().Int64(), uint32(r32.Next()))
+	}
+}
+
+func benchmarkMod(b *testing.B, w, exp uint32) {
+	b.StopTimer()
+	var n, mod big.Int
+	n.Rand(rand.New(rand.NewSource(1)), New(w))
+	n.SetBit(&n, int(w), 1)
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		Mod(&mod, &n, exp)
+	}
+}
+
+func benchmarkModBig(b *testing.B, w, exp uint32) {
+	b.StopTimer()
+	var n, mod big.Int
+	n.Rand(rand.New(rand.NewSource(1)), New(w))
+	n.SetBit(&n, int(w), 1)
+	runtime.GC()
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		mod.Mod(&n, New(exp))
+	}
+}
+
+func BenchmarkMod_1e2(b *testing.B) {
+	benchmarkMod(b, 1e2+2, 1e2)
+}
+
+func BenchmarkModBig_1e2(b *testing.B) {
+	benchmarkModBig(b, 1e2+2, 1e2)
+}
+
+func BenchmarkMod_1e3(b *testing.B) {
+	benchmarkMod(b, 1e3+2, 1e3)
+}
+
+func BenchmarkModBig_1e3(b *testing.B) {
+	benchmarkModBig(b, 1e3+2, 1e3)
+}
+
+func BenchmarkMod_1e4(b *testing.B) {
+	benchmarkMod(b, 1e4+2, 1e4)
+}
+
+func BenchmarkModBig_1e4(b *testing.B) {
+	benchmarkModBig(b, 1e4+2, 1e4)
+}
+
+func BenchmarkMod_1e5(b *testing.B) {
+	benchmarkMod(b, 1e5+2, 1e5)
+}
+
+func BenchmarkModBig_1e5(b *testing.B) {
+	benchmarkModBig(b, 1e5+2, 1e5)
+}
+
+func BenchmarkMod_1e6(b *testing.B) {
+	benchmarkMod(b, 1e6+2, 1e6)
+}
+
+func BenchmarkModBig_1e6(b *testing.B) {
+	benchmarkModBig(b, 1e6+2, 1e6)
+}
+
+func BenchmarkMod_1e7(b *testing.B) {
+	benchmarkMod(b, 1e7+2, 1e7)
+}
+
+func BenchmarkModBig_1e7(b *testing.B) {
+	benchmarkModBig(b, 1e7+2, 1e7)
+}
+
+func BenchmarkMod_1e8(b *testing.B) {
+	benchmarkMod(b, 1e8+2, 1e8)
+}
+
+func BenchmarkModBig_1e8(b *testing.B) {
+	benchmarkModBig(b, 1e8+2, 1e8)
+}
+
+func BenchmarkMod_5e8(b *testing.B) {
+	benchmarkMod(b, 5e8+2, 5e8)
+}
+
+func BenchmarkModBig_5e8(b *testing.B) {
+	benchmarkModBig(b, 5e8+2, 5e8)
+}
+
+func TestModPow(t *testing.T) {
+	const N = 2e2
+	data := []struct{ b, e, m, r uint32 }{
+		{0, 1, 1, 0},
+		{0, 2, 1, 0},
+		{0, 3, 1, 0},
+
+		{1, 0, 1, 0},
+		{1, 1, 1, 0},
+		{1, 2, 1, 0},
+		{1, 3, 1, 0},
+
+		{2, 0, 1, 0},
+		{2, 1, 1, 0},
+		{2, 2, 1, 0},
+		{2, 3, 1, 0},
+
+		{2, 3, 4, 8},
+		{2, 3, 5, 4},
+		{2, 4, 3, 1},
+		{3, 3, 3, 3},
+		{3, 4, 5, 30},
+	}
+
+	f := func(b, e, m uint32, expect *big.Int) {
+		got := ModPow(b, e, m)
+		if got.Cmp(expect) != 0 {
+			t.Fatal(b, e, m, got, expect)
+		}
+	}
+
+	var r big.Int
+	for _, v := range data {
+		r.SetInt64(int64(v.r))
+		f(v.b, v.e, v.m, &r)
+	}
+
+	rg, _ := mathutil.NewFC32(2, 1<<10, true)
+	var bb big.Int
+	for i := 0; i < N; i++ {
+		b, e, m := uint32(rg.Next()), uint32(rg.Next()), uint32(rg.Next())
+		bb.SetInt64(int64(b))
+		f(b, e, m, mathutil.ModPowBigInt(&bb, New(e), New(m)))
+	}
+}
+
+func benchmarkModPow2(b *testing.B, e, m uint32) {
+	b.StopTimer()
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		ModPow2(e, m)
+	}
+}
+
+func benchmarkModPow(b *testing.B, base, e, m uint32) {
+	b.StopTimer()
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		ModPow(base, e, m)
+	}
+}
+
+func benchmarkModPowBig(b *testing.B, base, e, m uint32) {
+	b.StopTimer()
+	bb := big.NewInt(int64(base))
+	ee := New(e)
+	mm := New(m)
+	runtime.GC()
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		mathutil.ModPowBigInt(bb, ee, mm)
+	}
+}
+
+func BenchmarkModPow2_1e2(b *testing.B) {
+	benchmarkModPow2(b, 1e2, 1e2+1)
+}
+
+func BenchmarkModPow_2_1e2(b *testing.B) {
+	benchmarkModPow(b, 2, 1e2, 1e2+1)
+}
+
+func BenchmarkModPowB_2_1e2(b *testing.B) {
+	benchmarkModPowBig(b, 2, 1e2, 1e2+1)
+}
+
+func BenchmarkModPow_3_1e2(b *testing.B) {
+	benchmarkModPow(b, 3, 1e2, 1e2+1)
+}
+
+func BenchmarkModPowB_3_1e2(b *testing.B) {
+	benchmarkModPowBig(b, 3, 1e2, 1e2+1)
+}
+
+// ----
+
+func BenchmarkModPow2_1e3(b *testing.B) {
+	benchmarkModPow2(b, 1e3, 1e3+1)
+}
+
+func BenchmarkModPow_2_1e3(b *testing.B) {
+	benchmarkModPow(b, 2, 1e3, 1e3+1)
+}
+
+func BenchmarkModPowB_2_1e3(b *testing.B) {
+	benchmarkModPowBig(b, 2, 1e3, 1e3+1)
+}
+
+func BenchmarkModPow_3_1e3(b *testing.B) {
+	benchmarkModPow(b, 3, 1e3, 1e3+1)
+}
+
+func BenchmarkModPowB_3_1e3(b *testing.B) {
+	benchmarkModPowBig(b, 3, 1e3, 1e3+1)
+}
+
+// ----
+
+func BenchmarkModPow2_1e4(b *testing.B) {
+	benchmarkModPow2(b, 1e4, 1e4+1)
+}
+
+func BenchmarkModPow_2_1e4(b *testing.B) {
+	benchmarkModPow(b, 2, 1e4, 1e4+1)
+}
+
+func BenchmarkModPowB_2_1e4(b *testing.B) {
+	benchmarkModPowBig(b, 2, 1e4, 1e4+1)
+}
+
+func BenchmarkModPow_3_1e4(b *testing.B) {
+	benchmarkModPow(b, 3, 1e4, 1e4+1)
+}
+
+func BenchmarkModPowB_3_1e4(b *testing.B) {
+	benchmarkModPowBig(b, 3, 1e4, 1e4+1)
+}
+
+// ----
+
+func BenchmarkModPow2_1e5(b *testing.B) {
+	benchmarkModPow2(b, 1e5, 1e5+1)
+}
+
+func BenchmarkModPow2_1e6(b *testing.B) {
+	benchmarkModPow2(b, 1e6, 1e6+1)
+}
+
+func BenchmarkModPow2_1e7(b *testing.B) {
+	benchmarkModPow2(b, 1e7, 1e7+1)
+}
+
+func BenchmarkModPow2_1e8(b *testing.B) {
+	benchmarkModPow2(b, 1e8, 1e8+1)
+}
+
+func BenchmarkModPow2_1e9(b *testing.B) {
+	benchmarkModPow2(b, 1e9, 1e9+1)
+}
+
+func TestModPow2(t *testing.T) {
+	const N = 1e3
+	data := []struct{ e, m uint32 }{
+		// e == 0 -> x == 0
+		{0, 2},
+		{0, 3},
+		{0, 4},
+
+		{1, 2},
+		{1, 3},
+		{1, 4},
+		{1, 5},
+
+		{2, 2},
+		{2, 3},
+		{2, 4},
+		{2, 5},
+
+		{3, 2},
+		{3, 3},
+		{3, 4},
+		{3, 5},
+		{3, 6},
+		{3, 7},
+		{3, 8},
+		{3, 9},
+
+		{4, 2},
+		{4, 3},
+		{4, 4},
+		{4, 5},
+		{4, 6},
+		{4, 7},
+		{4, 8},
+		{4, 9},
+	}
+
+	var got big.Int
+	f := func(e, m uint32) {
+		x := ModPow2(e, m)
+		exp := ModPow(2, e, m)
+		got.SetInt64(0)
+		got.SetBit(&got, int(x), 1)
+		if got.Cmp(exp) != 0 {
+			t.Fatalf("\ne %d, m %d\ng: %s\ne: %s", e, m, &got, exp)
+		}
+	}
+
+	for _, v := range data {
+		f(v.e, v.m)
+	}
+
+	rg, _ := mathutil.NewFC32(2, 1<<10, true)
+	for i := 0; i < N; i++ {
+		f(uint32(rg.Next()), uint32(rg.Next()))
+	}
 }
