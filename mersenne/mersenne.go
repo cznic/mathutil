@@ -132,7 +132,7 @@ func HasFactorBigInt(d *big.Int, n uint32) bool {
 FromFactorBigInt returns n such that d | Mn if n <= max and d is odd. In other
 cases zero is returned.
 
-It is conjecture that every odd d ∊ N divides infinitely many Mersenne numbers.
+It is conjectured that every odd d ∊ N divides infinitely many Mersenne numbers.
 The returned n should be the exponent of smallest such Mn.
 
 NOTE: The computation of n from a given d performs roughly in O(n). It is
