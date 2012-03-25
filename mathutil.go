@@ -4,8 +4,8 @@
 
 // blame: jnml, labs.nic.cz
 
-// Package mathutil provides utilities supplementing the standard 'math',
-// 'math/rand' and 'sort' packages.
+// Package mathutil provides utilities supplementing the standard 'math' and
+// 'math/rand' packages.
 package mathutil
 
 import (
