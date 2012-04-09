@@ -130,7 +130,7 @@ func IsPrime(n uint32) bool {
 	panic("unreachable")
 }
 
-// IsPrimeUint64 returns true if n is prime. Typical run time is about 2 µs.
+// IsPrimeUint64 returns true if n is prime. Typical run time is few tens of µs.
 //
 // SPRP bases: http://miller-rabin.appspot.com
 func IsPrimeUint64(n uint64) bool {
@@ -216,7 +216,7 @@ func IsPrimeUint64(n uint64) bool {
 }
 
 // NextPrime returns first prime > n and true if successful or an undefined value and false if there
-// is no next prime in the uint32 limits. Typical run time is few µs.
+// is no next prime in the uint32 limits. Typical run time is about 2 µs.
 //
 //TODO rename to NextPrimeUint32
 func NextPrime(n uint32) (p uint32, ok bool) {
