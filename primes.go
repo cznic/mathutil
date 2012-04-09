@@ -66,15 +66,12 @@ func NextPrimeUint16(n uint16) (p uint16, ok bool) {
 	return smallPrimes[i], true
 }
 
-// IsPrime returns true if n is prime. Typical run time is few hundreds  of ns.
-// http://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test#Deterministic_variants_of_the_test
-//
-// SPRP bases: http://miller-rabin.appspot.com
+// IsPrime returns true if n is prime. Typical run time is about 100 ns.
 //
 //TODO rename to IsPrimeUint32
 func IsPrime(n uint32) bool {
 	switch {
-	case n%2 == 0:
+	case n&1 == 0:
 		return n == 2
 	case n%3 == 0:
 		return n == 3
@@ -108,19 +105,32 @@ func IsPrime(n uint32) bool {
 		return n == 53 // Benchmarked optimum
 	case n < 65536:
 		// use table data
-		return isPrimeUint16(uint16(n))
-	case n < 316349281:
-		return ProbablyPrimeUint32(n, 11000544) &&
-			ProbablyPrimeUint32(n, 31481107)
+		return IsPrimeUint16(uint16(n))
 	default:
-		return ProbablyPrimeUint32(n, 2) &&
-			ProbablyPrimeUint32(n, 1005905886) &&
-			ProbablyPrimeUint32(n, 1340600841)
+		mod := ModPowUint32(2, (n+1)/2, n)
+		if mod != 2 && mod != n-2 {
+			return false
+		}
+		blk := &lohi[n>>24]
+		lo, hi := blk.lo, blk.hi
+		for lo <= hi {
+			index := (lo + hi) >> 1
+			liar := liars[index]
+			switch {
+			case n > liar:
+				lo = index + 1
+			case n < liar:
+				hi = index - 1
+			default:
+				return false
+			}
+		}
+		return true
 	}
 	panic("unreachable")
 }
 
-// IsPrimeUint64 returns true if n is prime. Typical run time is few tens of µs.
+// IsPrimeUint64 returns true if n is prime. Typical run time is about 2 µs.
 //
 // SPRP bases: http://miller-rabin.appspot.com
 func IsPrimeUint64(n uint64) bool {
@@ -237,19 +247,7 @@ func NextPrime(n uint32) (p uint32, ok bool) {
 	}
 
 	for {
-		switch {
-		case p%5 == 0 || p%7 == 0 || p%11 == 0 || p%13 == 0 || p%17 == 0 || p%19 == 0 ||
-			p%23 == 0 || p%29 == 0 || p%31 == 0 || p%37 == 0 || p%41 == 0 ||
-			p%43 == 0 || p%47 == 0 || p%53 == 0 || p%59 == 0 || p%61 == 0 ||
-			p%67 == 0 || p%71 == 0 || p%73 == 0 || p%79 == 0 || p%83 == 0 ||
-			p%89 == 0 || p%97 == 0 || p%101 == 0 || p%103 == 0 || p%107 == 0:
-		case p < 316349281 &&
-			ProbablyPrimeUint32(p, 11000544) &&
-			ProbablyPrimeUint32(p, 31481107):
-			return p, true
-		case ProbablyPrimeUint32(p, 2) &&
-			ProbablyPrimeUint32(p, 1005905886) &&
-			ProbablyPrimeUint32(p, 1340600841):
+		if IsPrime(p) {
 			return p, true
 		}
 

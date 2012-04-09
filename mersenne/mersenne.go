@@ -270,9 +270,10 @@ func ModPow(b, e, m uint32) (r *big.Int) {
 }
 
 // ProbablyPrime returns true if Mn is prime or is a pseudoprime to base a.
-// Note: Every Mp, prime p is a pseudoprime to base 2, actually to every base
-// 2^i, i ∊ [1, p). In contrast - it is conjectured (w/o any known
-// counterexamples) that no composite Mp, prime p, is a pseudoprime to base 3.
+// Note: Every Mp, prime p, is a prime or is a pseudoprime to base 2, actually
+// to every base 2^i, i ∊ [1, p). In contrast - it is conjectured (w/o any
+// known counterexamples) that no composite Mp, prime p, is a pseudoprime to
+// base 3.
 func ProbablyPrime(n, a uint32) bool {
 	//TODO +test, +bench
 	if a == 2 {
