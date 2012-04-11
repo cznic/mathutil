@@ -2062,8 +2062,6 @@ func BenchmarkProbablyPrimeUint64_32(b *testing.B) {
 	}
 }
 
-var _2 = big.NewInt(2)
-
 func TestProbablyPrimeBigInt_32(t *testing.T) {
 	f := func(n0, firstFail0 uint64, primes []uint32) {
 		n, firstFail := Uint64ToBigInt(n0), Uint64ToBigInt(firstFail0)
@@ -2338,4 +2336,180 @@ func BenchmarkPrimorialProductsUint32(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		PrimorialProductsUint32(0, math.MaxUint32, math.MaxUint32)
 	}
+}
+
+func powerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
+	p = big.NewInt(1)
+	bb := big.NewInt(int64(b))
+	for p.Cmp(n) < 0 {
+		p.Mul(p, bb)
+		e++
+	}
+	return
+}
+
+func TestPowerizeUint32BigInt(t *testing.T) {
+	var data = []struct{ b, n, e, p int }{
+		{0, 10, 0, -1},
+		{1, 10, 0, -1},
+		{2, -1, 0, -1},
+		{2, 0, 0, 1},
+		{2, 1, 0, 1},
+		{2, 2, 1, 2},
+		{2, 3, 2, 4},
+		{3, 0, 0, 1},
+		{3, 1, 0, 1},
+		{3, 2, 1, 3},
+		{3, 3, 1, 3},
+		{3, 4, 2, 9},
+		{3, 80, 4, 81},
+	}
+
+	var n big.Int
+	for _, v := range data {
+		b := v.b
+		n.SetInt64(int64(v.n))
+		e, p := PowerizeUint32BigInt(uint32(b), &n)
+		if e != uint32(v.e) {
+			t.Fatal(b, &n, e, p, v.e, v.p)
+		}
+
+		if v.p < 0 {
+			if p != nil {
+				t.Fatal(b, &n, e, p, v.e, v.p)
+			}
+			continue
+		}
+
+		if p.Int64() != int64(v.p) {
+			t.Fatal(b, &n, e, p, v.e, v.p)
+		}
+	}
+	const N = 1e5
+	var nn big.Int
+	for _, base := range []uint32{2, 3, 15, 17} {
+		for n := 0; n <= N; n++ {
+			nn.SetInt64(int64(n))
+			ge, gp := PowerizeUint32BigInt(base, &nn)
+			ee, ep := powerizeUint32BigInt(base, &nn)
+			if ge != ee || gp.Cmp(ep) != 0 {
+				t.Fatal(base, n, ge, gp, ee, ep)
+			}
+
+			gp.Div(gp, big.NewInt(int64(base)))
+			if gp.Sign() > 0 && gp.Cmp(&nn) >= 0 {
+				t.Fatal()
+			}
+		}
+	}
+}
+
+func benchmarkPowerizeUint32BigInt(b *testing.B, base uint32, exp int) {
+	b.StopTimer()
+	var n big.Int
+	n.SetBit(&n, exp, 1)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		PowerizeUint32BigInt(base, &n)
+	}
+}
+
+func BenchmarkPowerizeUint32BigInt_2_2e1e1(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 2, 1e1)
+}
+
+func BenchmarkPowerizeUint32BigInt_2_2e1e2(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 2, 1e2)
+}
+
+func BenchmarkPowerizeUint32BigInt_2_2e1e3(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 2, 1e3)
+}
+
+func BenchmarkPowerizeUint32BigInt_2_2e1e4(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 2, 1e4)
+}
+
+func BenchmarkPowerizeUint32BigInt_2_2e1e5(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 2, 1e5)
+}
+
+func BenchmarkPowerizeUint32BigInt_2_2e1e6(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 2, 1e6)
+}
+
+func BenchmarkPowerizeUint32BigInt_2_2e1e7(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 2, 1e7)
+}
+
+func BenchmarkPowerizeUint32BigInt_3_2e1e1(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 3, 1e1)
+}
+
+func BenchmarkPowerizeUint32BigInt_3_2e1e2(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 3, 1e2)
+}
+
+func BenchmarkPowerizeUint32BigInt_3_2e1e3(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 3, 1e3)
+}
+
+func BenchmarkPowerizeUint32BigInt_3_2e1e4(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 3, 1e4)
+}
+
+func BenchmarkPowerizeUint32BigInt_3_2e1e5(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 3, 1e5)
+}
+
+func BenchmarkPowerizeUint32BigInt_3_2e1e6(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 3, 1e6)
+}
+
+func BenchmarkPowerizeUint32BigInt_15_2e1e1(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 15, 1e1)
+}
+
+func BenchmarkPowerizeUint32BigInt_15_2e1e2(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 15, 1e2)
+}
+
+func BenchmarkPowerizeUint32BigInt_15_2e1e3(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 15, 1e3)
+}
+
+func BenchmarkPowerizeUint32BigInt_15_2e1e4(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 15, 1e4)
+}
+
+func BenchmarkPowerizeUint32BigInt_15_2e1e5(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 15, 1e5)
+}
+
+func BenchmarkPowerizeUint32BigInt_15_2e1e6(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 15, 1e6)
+}
+
+func BenchmarkPowerizeUint32BigInt_17_2e1e1(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 17, 1e1)
+}
+
+func BenchmarkPowerizeUint32BigInt_17_2e1e2(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 17, 1e2)
+}
+
+func BenchmarkPowerizeUint32BigInt_17_2e1e3(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 17, 1e3)
+}
+
+func BenchmarkPowerizeUint32BigInt_17_2e1e4(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 17, 1e4)
+}
+
+func BenchmarkPowerizeUint32BigInt_17_2e1e5(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 17, 1e5)
+}
+
+func BenchmarkPowerizeUint32BigInt_17_2e1e6(b *testing.B) {
+	benchmarkPowerizeUint32BigInt(b, 17, 1e6)
 }

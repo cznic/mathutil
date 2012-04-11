@@ -13,7 +13,10 @@ import (
 	"math/big"
 )
 
-var _1 = big.NewInt(1)
+var (
+	_1 = big.NewInt(1)
+	_2 = big.NewInt(2)
+)
 
 // GCDByte returns the greatest common divisor of a and b. Based on:
 // http://en.wikipedia.org/wiki/Euclidean_algorithm#Implementations
@@ -312,6 +315,66 @@ func mulUint128_64(a, b uint64) (hi, lo uint64) {
 	c2, lo := addUint128_64(lo, mid2<<w)
 	_, hi = addUint128_64(ahi*bhi, mid1>>w+mid2>>w+uint64(c1+c2))
 	return
+}
+
+func powBigIntUint32Uint32(b, e uint32) (r *big.Int) {
+	r = big.NewInt(1)
+	var bb big.Int
+	bb.SetInt64(int64(b))
+	for ; e != 0; e >>= 1 {
+		if e&1 != 0 {
+			r.Mul(r, &bb)
+		}
+		bb.Mul(&bb, &bb)
+	}
+	return
+}
+
+// PowerizeUint32BigInt returns (e, p) such that e is the smallest number for
+// which p == b^e is greater or equal n. For n < 0 or b < 2 (0, nil) is
+// returned.
+//
+// NOTE: Run time for large values of n (above about 2^1e6 ~= 1e300000) can be
+// significant and/or unacceptabe.  For any smaller values of n the function
+// typically performs in sub second time.  For "small" values of n (cca bellow
+// 2^1e3 ~= 1e300) the same can be easily below 10 µs.
+//
+// A special (and trivial) case of b == 2 is handled separately and performs
+// much faster.
+func PowerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
+	switch {
+	case b < 2 || n.Sign() < 0:
+		return
+	case n.Sign() == 0 || n.Cmp(_1) == 0:
+		return 0, big.NewInt(1)
+	case b == 2: //TODO actually all powers of 2 should use the short path
+		p = big.NewInt(0)
+		e = uint32(n.BitLen() - 1)
+		p.SetBit(p, int(e), 1)
+		if p.Cmp(n) < 0 {
+			p.Mul(p, _2)
+			e++
+		}
+		return
+	}
+
+	bw := BitLenUint32(b)
+	nw := n.BitLen()
+	p = big.NewInt(1)
+	for {
+		switch p.Cmp(n) {
+		case -1:
+			x := uint32((nw - p.BitLen()) / bw)
+			if x == 0 {
+				x = 1
+			}
+			e += x
+			p.Mul(p, powBigIntUint32Uint32(b, x))
+		case 0, 1:
+			return
+		}
+	}
+	panic("unreachable")
 }
 
 /*
