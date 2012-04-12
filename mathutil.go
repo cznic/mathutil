@@ -317,19 +317,6 @@ func mulUint128_64(a, b uint64) (hi, lo uint64) {
 	return
 }
 
-func powBigIntUint32Uint32(b, e uint32) (r *big.Int) {
-	r = big.NewInt(1)
-	var bb big.Int
-	bb.SetInt64(int64(b))
-	for ; e != 0; e >>= 1 {
-		if e&1 != 0 {
-			r.Mul(r, &bb)
-		}
-		bb.Mul(&bb, &bb)
-	}
-	return
-}
-
 // PowerizeUint32BigInt returns (e, p) such that e is the smallest number for
 // which p == b^e is greater or equal n. For n < 0 or b < 2 (0, nil) is
 // returned.
@@ -361,6 +348,8 @@ func PowerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
 	bw := BitLenUint32(b)
 	nw := n.BitLen()
 	p = big.NewInt(1)
+	var b0, bb, r big.Int
+	b0.SetInt64(int64(b))
 	for {
 		switch p.Cmp(n) {
 		case -1:
@@ -369,7 +358,25 @@ func PowerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
 				x = 1
 			}
 			e += x
-			p.Mul(p, powBigIntUint32Uint32(b, x))
+			switch x {
+			case 1:
+				p.Mul(p, &b0)
+			default:
+				r.Set(_1)
+				bb.Set(&b0)
+				e := x
+				for {
+					if e&1 != 0 {
+						r.Mul(&r, &bb)
+					}
+					if e >>= 1; e == 0 {
+						break
+					}
+
+					bb.Mul(&bb, &bb)
+				}
+				p.Mul(p, &r)
+			}
 		case 0, 1:
 			return
 		}
