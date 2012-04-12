@@ -317,9 +317,8 @@ func mulUint128_64(a, b uint64) (hi, lo uint64) {
 	return
 }
 
-// PowerizeUint32BigInt returns (e, p) such that e is the smallest number for
-// which p == b^e is greater or equal n. For n < 0 or b < 2 (0, nil) is
-// returned.
+// PowerizeBigInt returns (e, p) such that e is the smallest number for which p
+// == b^e is greater or equal n. For n < 0 or b < 2 (0, nil) is returned.
 //
 // NOTE: Run time for large values of n (above about 2^1e6 ~= 1e300000) can be
 // significant and/or unacceptabe.  For any smaller values of n the function
@@ -328,13 +327,13 @@ func mulUint128_64(a, b uint64) (hi, lo uint64) {
 //
 // A special (and trivial) case of b == 2 is handled separately and performs
 // much faster.
-func PowerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
+func PowerizeBigInt(b, n *big.Int) (e uint32, p *big.Int) {
 	switch {
-	case b < 2 || n.Sign() < 0:
+	case b.Cmp(_2) < 0 || n.Sign() < 0:
 		return
 	case n.Sign() == 0 || n.Cmp(_1) == 0:
 		return 0, big.NewInt(1)
-	case b == 2: //TODO actually all powers of 2 should use the short path
+	case b.Cmp(_2) == 0: //TODO actually all powers of 2 should use the short path
 		p = big.NewInt(0)
 		e = uint32(n.BitLen() - 1)
 		p.SetBit(p, int(e), 1)
@@ -345,11 +344,10 @@ func PowerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
 		return
 	}
 
-	bw := BitLenUint32(b)
+	bw := b.BitLen()
 	nw := n.BitLen()
 	p = big.NewInt(1)
-	var b0, bb, r big.Int
-	b0.SetInt64(int64(b))
+	var bb, r big.Int
 	for {
 		switch p.Cmp(n) {
 		case -1:
@@ -360,10 +358,10 @@ func PowerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
 			e += x
 			switch x {
 			case 1:
-				p.Mul(p, &b0)
+				p.Mul(p, b)
 			default:
 				r.Set(_1)
-				bb.Set(&b0)
+				bb.Set(b)
 				e := x
 				for {
 					if e&1 != 0 {
@@ -382,6 +380,33 @@ func PowerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
 		}
 	}
 	panic("unreachable")
+}
+
+// PowerizeUint32BigInt returns (e, p) such that e is the smallest number for
+// which p == b^e is greater or equal n. For n < 0 or b < 2 (0, nil) is
+// returned.
+//
+// More info: see PowerizeBigInt.
+func PowerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
+	switch {
+	case b < 2 || n.Sign() < 0:
+		return
+	case n.Sign() == 0 || n.Cmp(_1) == 0:
+		return 0, big.NewInt(1)
+	case b == 2: //TODO actually all powers of 2 should use the short path
+		p = big.NewInt(0)
+		e = uint32(n.BitLen() - 1)
+		p.SetBit(p, int(e), 1)
+		if p.Cmp(n) < 0 {
+			p.Mul(p, _2)
+			e++
+		}
+		return
+	}
+
+	var bb big.Int
+	bb.SetInt64(int64(b))
+	return PowerizeBigInt(&bb, n)
 }
 
 /*

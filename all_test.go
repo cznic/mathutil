@@ -2516,3 +2516,174 @@ func BenchmarkPowerizeUint32BigInt_17_2e1e5(b *testing.B) {
 func BenchmarkPowerizeUint32BigInt_17_2e1e6(b *testing.B) {
 	benchmarkPowerizeUint32BigInt(b, 17, 1e6)
 }
+
+func TestPowerizeBigInt(t *testing.T) {
+	var data = []struct{ b, n, e, p int }{
+		{0, 10, 0, -1},
+		{1, 10, 0, -1},
+		{2, -1, 0, -1},
+		{2, 0, 0, 1},
+		{2, 1, 0, 1},
+		{2, 2, 1, 2},
+		{2, 3, 2, 4},
+		{3, 0, 0, 1},
+		{3, 1, 0, 1},
+		{3, 2, 1, 3},
+		{3, 3, 1, 3},
+		{3, 4, 2, 9},
+		{3, 8, 2, 9},
+		{3, 9, 2, 9},
+		{3, 10, 3, 27},
+		{3, 80, 4, 81},
+	}
+
+	var b, n big.Int
+	for _, v := range data {
+		b.SetInt64(int64(v.b))
+		n.SetInt64(int64(v.n))
+		e, p := PowerizeBigInt(&b, &n)
+		if e != uint32(v.e) {
+			t.Fatal(&b, &n, e, p, v.e, v.p)
+		}
+
+		if v.p < 0 {
+			if p != nil {
+				t.Fatal(&b, &n, e, p, v.e, v.p)
+			}
+			continue
+		}
+
+		if p.Int64() != int64(v.p) {
+			t.Fatal(&b, &n, e, p, v.e, v.p)
+		}
+	}
+	const N = 1e5
+	var nn big.Int
+	for _, base := range []uint32{2, 3, 15, 17} {
+		b.SetInt64(int64(base))
+		for n := 0; n <= N; n++ {
+			nn.SetInt64(int64(n))
+			ge, gp := PowerizeBigInt(&b, &nn)
+			ee, ep := powerizeUint32BigInt(base, &nn)
+			if ge != ee || gp.Cmp(ep) != 0 {
+				t.Fatal(base, n, ge, gp, ee, ep)
+			}
+
+			gp.Div(gp, &b)
+			if gp.Sign() > 0 && gp.Cmp(&nn) >= 0 {
+				t.Fatal()
+			}
+		}
+	}
+}
+
+func benchmarkPowerizeBigInt(b *testing.B, base uint32, exp int) {
+	b.StopTimer()
+	var bb, n big.Int
+	n.SetBit(&n, exp, 1)
+	bb.SetInt64(int64(base))
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		PowerizeBigInt(&bb, &n)
+	}
+}
+
+func BenchmarkPowerizeBigInt_2_2e1e1(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 2, 1e1)
+}
+
+func BenchmarkPowerizeBigInt_2_2e1e2(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 2, 1e2)
+}
+
+func BenchmarkPowerizeBigInt_2_2e1e3(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 2, 1e3)
+}
+
+func BenchmarkPowerizeBigInt_2_2e1e4(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 2, 1e4)
+}
+
+func BenchmarkPowerizeBigInt_2_2e1e5(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 2, 1e5)
+}
+
+func BenchmarkPowerizeBigInt_2_2e1e6(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 2, 1e6)
+}
+
+func BenchmarkPowerizeBigInt_2_2e1e7(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 2, 1e7)
+}
+
+func BenchmarkPowerizeBigInt_3_2e1e1(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 3, 1e1)
+}
+
+func BenchmarkPowerizeBigInt_3_2e1e2(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 3, 1e2)
+}
+
+func BenchmarkPowerizeBigInt_3_2e1e3(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 3, 1e3)
+}
+
+func BenchmarkPowerizeBigInt_3_2e1e4(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 3, 1e4)
+}
+
+func BenchmarkPowerizeBigInt_3_2e1e5(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 3, 1e5)
+}
+
+func BenchmarkPowerizeBigInt_3_2e1e6(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 3, 1e6)
+}
+
+func BenchmarkPowerizeBigInt_15_2e1e1(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 15, 1e1)
+}
+
+func BenchmarkPowerizeBigInt_15_2e1e2(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 15, 1e2)
+}
+
+func BenchmarkPowerizeBigInt_15_2e1e3(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 15, 1e3)
+}
+
+func BenchmarkPowerizeBigInt_15_2e1e4(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 15, 1e4)
+}
+
+func BenchmarkPowerizeBigInt_15_2e1e5(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 15, 1e5)
+}
+
+func BenchmarkPowerizeBigInt_15_2e1e6(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 15, 1e6)
+}
+
+func BenchmarkPowerizeBigInt_17_2e1e1(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 17, 1e1)
+}
+
+func BenchmarkPowerizeBigInt_17_2e1e2(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 17, 1e2)
+}
+
+func BenchmarkPowerizeBigInt_17_2e1e3(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 17, 1e3)
+}
+
+func BenchmarkPowerizeBigInt_17_2e1e4(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 17, 1e4)
+}
+
+func BenchmarkPowerizeBigInt_17_2e1e5(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 17, 1e5)
+}
+
+func BenchmarkPowerizeBigInt_17_2e1e6(b *testing.B) {
+	benchmarkPowerizeBigInt(b, 17, 1e6)
+}
