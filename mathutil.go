@@ -71,8 +71,7 @@ func ISqrt(n uint32) (x uint32) {
 	return
 }
 
-// SqrtBig returns floor(sqrt(n)). Typical run time is few hundreds of ns.  It
-// panics on n < 0.
+// SqrtBig returns floor(sqrt(n)). It panics on n < 0.
 func SqrtBig(n *big.Int) (x *big.Int) {
 	switch n.Sign() {
 	case -1:
