@@ -71,6 +71,30 @@ func ISqrt(n uint32) (x uint32) {
 	return
 }
 
+// SqrtBig returns floor(sqrt(n)). Typical run time is few hundreds of ns.  It
+// panics on n < 0.
+func SqrtBig(n *big.Int) (x *big.Int) {
+	switch n.Sign() {
+	case -1:
+		panic(-1)
+	case 0:
+		return big.NewInt(0)
+	}
+
+	var px, nx big.Int
+	x = big.NewInt(0)
+	x.SetBit(x, n.BitLen()/2+1, 1)
+	for {
+		nx.Rsh(nx.Add(x, nx.Div(n, x)), 1)
+		if nx.Cmp(x) == 0 || nx.Cmp(&px) == 0 {
+			break
+		}
+		px.Set(x)
+		x.Set(&nx)
+	}
+	return
+}
+
 // Log2Byte returns log base 2 of n. It's the same as index of the highest
 // bit set in n.  For n == 0 -1 is returned.
 func Log2Byte(n byte) int {

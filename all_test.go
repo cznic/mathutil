@@ -660,6 +660,43 @@ func TestISqrt(t *testing.T) {
 	}
 }
 
+func TestSqrtBig(t *testing.T) {
+	const N = 3e4
+	var n, lim, x2 big.Int
+	lim.SetInt64(N)
+	for n.Cmp(&lim) != 0 {
+		x := SqrtBig(&n)
+		x2.Mul(x, x)
+		if x.Cmp(&n) > 0 {
+			t.Fatalf("got sqrt(%s) == %s, too big", &n, x)
+		}
+		x2.Add(&x2, x)
+		x2.Add(&x2, x)
+		x2.Add(&x2, _1)
+		if x2.Cmp(&n) < 0 {
+			t.Fatalf("got sqrt(%s) == %s, too low", &n, x)
+		}
+		n.Add(&n, _1)
+	}
+	rng := rand.New(rand.NewSource(1))
+	var h big.Int
+	h.SetBit(&h, 1e3, 1)
+	for i := 0; i < N; i++ {
+		n.Rand(rng, &h)
+		x := SqrtBig(&n)
+		x2.Mul(x, x)
+		if x.Cmp(&n) > 0 {
+			t.Fatalf("got sqrt(%s) == %s, too big", &n, x)
+		}
+		x2.Add(&x2, x)
+		x2.Add(&x2, x)
+		x2.Add(&x2, _1)
+		if x2.Cmp(&n) < 0 {
+			t.Fatalf("got sqrt(%s) == %s, too low", &n, x)
+		}
+	}
+}
+
 func TestFactorInt(t *testing.T) {
 	chk := func(n uint64, f []FactorTerm) bool {
 		if n < 2 {
@@ -763,6 +800,42 @@ func BenchmarkISqrt(b *testing.B) {
 	for _, n := range n {
 		ISqrt(n)
 	}
+}
+
+func benchmarkSqrtBig(b *testing.B, bits int) {
+	b.StopTimer()
+	n := make([]*big.Int, b.N)
+	rng := rand.New(rand.NewSource(1))
+	var nn, h big.Int
+	h.SetBit(&h, bits, 1)
+	for i := 0; i < b.N; i++ {
+		n[i] = nn.Rand(rng, &h)
+	}
+	runtime.GC()
+	b.StartTimer()
+	for _, n := range n {
+		SqrtBig(n)
+	}
+}
+
+func BenchmarkSqrtBig2e1e1(b *testing.B) {
+	benchmarkSqrtBig(b, 1e1)
+}
+
+func BenchmarkSqrtBig2e1e2(b *testing.B) {
+	benchmarkSqrtBig(b, 1e2)
+}
+
+func BenchmarkSqrtBig2e1e3(b *testing.B) {
+	benchmarkSqrtBig(b, 1e3)
+}
+
+func BenchmarkSqrtBig2e1e4(b *testing.B) {
+	benchmarkSqrtBig(b, 1e4)
+}
+
+func BenchmarkSqrtBig2e1e5(b *testing.B) {
+	benchmarkSqrtBig(b, 1e5)
 }
 
 func BenchmarkFactorInt(b *testing.B) {
