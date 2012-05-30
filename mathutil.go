@@ -58,10 +58,30 @@ func ISqrt(n uint32) (x uint32) {
 	}
 
 	if n >= math.MaxUint16*math.MaxUint16 {
-		return 65535
+		return math.MaxUint16
 	}
 
 	var px, nx uint32
+	for x = n; ; px, x = x, nx {
+		nx = (x + n/x) / 2
+		if nx == x || nx == px {
+			break
+		}
+	}
+	return
+}
+
+// SqrtUint64 returns floor(sqrt(n)). Typical run time is about 0.5 µs.
+func SqrtUint64(n uint64) (x uint64) {
+	if n == 0 {
+		return
+	}
+
+	if n >= math.MaxUint32*math.MaxUint32 {
+		return math.MaxUint32
+	}
+
+	var px, nx uint64
 	for x = n; ; px, x = x, nx {
 		nx = (x + n/x) / 2
 		if nx == x || nx == px {

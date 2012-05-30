@@ -660,6 +660,45 @@ func TestISqrt(t *testing.T) {
 	}
 }
 
+func TestSqrtUint64(t *testing.T) {
+	for n := uint64(0); n < 2e6; n++ {
+		x := SqrtUint64(n)
+		if x > math.MaxUint32 {
+			t.Fatalf("got Sqrt(%d) == %d, too big", n, x)
+		}
+		if x2 := x * x; x2 > n {
+			t.Fatalf("got Sqrt(%d) == %d, too big", n, x)
+		}
+		if x2 := x*x + 2*x + 1; x2 < n {
+			t.Fatalf("got Sqrt(%d) == %d, too low", n, x)
+		}
+	}
+	const H = uint64(18446744056529682436)
+	for n := H; n > H-2e6; n-- {
+		x := SqrtUint64(n)
+		if x > math.MaxUint32 {
+			t.Fatalf("got Sqrt(%d) == %d, too big", n, x)
+		}
+		if x2 := x * x; x2 > n {
+			t.Fatalf("got Sqrt(%d) == %d, too big", n, x)
+		}
+		if x2 := x*x + 2*x + 1; x2 < n {
+			t.Fatalf("got Sqrt(%d) == %d, too low", n, x)
+		}
+	}
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < 2e6; i++ {
+		n := uint64(rng.Uint32())<<31 | uint64(rng.Uint32())
+		x := SqrtUint64(n)
+		if x2 := x * x; x2 > n {
+			t.Fatalf("got Sqrt(%d) == %d, too big", n, x)
+		}
+		if x2 := x*x + 2*x + 1; x2 < n {
+			t.Fatalf("got Sqrt(%d) == %d, too low", n, x)
+		}
+	}
+}
+
 func TestSqrtBig(t *testing.T) {
 	const N = 3e4
 	var n, lim, x2 big.Int
@@ -799,6 +838,19 @@ func BenchmarkISqrt(b *testing.B) {
 	b.StartTimer()
 	for _, n := range n {
 		ISqrt(n)
+	}
+}
+
+func BenchmarkSqrtUint64(b *testing.B) {
+	b.StopTimer()
+	n := make([]uint64, b.N)
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < b.N; i++ {
+		n[i] = uint64(rng.Uint32())<<32 | uint64(rng.Uint32())
+	}
+	b.StartTimer()
+	for _, n := range n {
+		SqrtUint64(n)
 	}
 }
 
