@@ -1016,7 +1016,7 @@ func TestPopCount(t *testing.T) {
 			t.Fatal(n, g, e)
 		}
 
-		if g, e := PopCountUintptr(uintptr(n)), bcnt(uint64(n)); g != e {
+		if g, e := PopCountUintptr(uintptr(n)), bcnt(uint64(uintptr(n))); g != e {
 			t.Fatal(n, g, e)
 		}
 	}
@@ -1126,7 +1126,7 @@ func TestBitLen(t *testing.T) {
 	rng := r64()
 	for i := 0; i < N; i++ {
 		n := uint64(rng.Next().Int64())
-		if g, e := BitLenUintptr(uintptr(n)), lg2(uint64(n))+1; g != e {
+		if g, e := BitLenUintptr(uintptr(n)), lg2(uint64(uintptr(n)))+1; g != e {
 			t.Fatalf("%b %d %d", n, g, e)
 		}
 		if g, e := BitLenUint64(n), lg2(n)+1; g != e {
