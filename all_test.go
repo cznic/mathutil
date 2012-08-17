@@ -2812,3 +2812,93 @@ func BenchmarkPowerizeBigInt_17_2e1e5(b *testing.B) {
 func BenchmarkPowerizeBigInt_17_2e1e6(b *testing.B) {
 	benchmarkPowerizeBigInt(b, 17, 1e6)
 }
+
+func TestEnvelope(t *testing.T) {
+	const prec = 1e-3
+	type check struct {
+		approx Approximation
+		x, y   float64
+	}
+	data := []struct {
+		points []float64
+		checks []check
+	}{
+		{
+			[]float64{0, 1},
+			[]check{
+				{Linear, 0, 0},
+				{Linear, 0.25, 0.25},
+				{Linear, 0.5, 0.5},
+				{Linear, 0.75, 0.75},
+				{Linear, 0.9999, 1},
+			},
+		},
+		{
+			[]float64{-1, 0},
+			[]check{
+				{Linear, 0, -1},
+				{Linear, 0.25, -0.75},
+				{Linear, 0.5, -0.5},
+				{Linear, 0.75, -0.25},
+				{Linear, 0.9999, 0},
+			},
+		},
+		{
+			[]float64{-1, 1},
+			[]check{
+				{Linear, 0, -1},
+				{Linear, 0.25, -0.5},
+				{Linear, 0.5, 0},
+				{Linear, 0.75, 0.5},
+				{Linear, 0.9999, 1},
+			},
+		},
+		{
+			[]float64{-1, 1, -2},
+			[]check{
+				{Linear, 0, -1},
+				{Linear, 0.25, 0},
+				{Linear, 0.5, 1},
+				{Linear, 0.75, -0.5},
+				{Linear, 0.9, -1.4},
+				{Linear, 0.9999, -2},
+			},
+		},
+		{
+			[]float64{-1, 1},
+			[]check{
+				{Sinusoidal, 0, -1},
+				{Sinusoidal, 0.25, -math.Sqrt2 / 2},
+				{Sinusoidal, 0.5, 0},
+				{Sinusoidal, 0.75, math.Sqrt2 / 2},
+				{Sinusoidal, 0.9999, 1},
+			},
+		},
+		{
+			[]float64{-1, 1, -2},
+			[]check{
+				{Sinusoidal, 0, -1},
+				{Sinusoidal, 1. / 8, -math.Sqrt2 / 2},
+				{Sinusoidal, 2. / 8, 0},
+				{Sinusoidal, 3. / 8, math.Sqrt2 / 2},
+				{Sinusoidal, 4. / 8, 1},
+				{Sinusoidal, 5. / 8, (3*math.Sqrt2 - 2) / 4},
+				{Sinusoidal, 6. / 8, -0.5},
+				{Sinusoidal, 7. / 8, (-3*math.Sqrt2 - 2) / 4},
+				{Sinusoidal, 0.9999, -2},
+			},
+		},
+	}
+	for i, suite := range data {
+		for j, test := range suite.checks {
+			e, g := test.y, Envelope(test.x, suite.points, test.approx)
+			d := math.Abs(e - g)
+			if d > prec {
+				t.Errorf(
+					"i %d, j %d, x %v, e %v, g %v, d %v, prec %v",
+					i, j, test.x, e, g, d, prec,
+				)
+			}
+		}
+	}
+}
