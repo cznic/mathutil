@@ -328,8 +328,8 @@ func UintptrBits() int {
 	return uintptrBits
 }
 
-// addUint128_64 returns the uint128 sum of uint64 a and b.
-func addUint128_64(a, b uint64) (hi byte, lo uint64) {
+// AddUint128_64 returns the uint128 sum of uint64 a and b.
+func AddUint128_64(a, b uint64) (hi byte, lo uint64) {
 	lo = a + b
 	if lo < a {
 		hi = 1
@@ -337,13 +337,13 @@ func addUint128_64(a, b uint64) (hi byte, lo uint64) {
 	return
 }
 
-// mulUint128_64 returns the uint128 bit product of uint64 a and b.
-func mulUint128_64(a, b uint64) (hi, lo uint64) {
+// MulUint128_64 returns the uint128 bit product of uint64 a and b.
+func MulUint128_64(a, b uint64) (hi, lo uint64) {
 	/*
 		2^(2 W) ahi bhi + 2^W alo bhi + 2^W ahi blo + alo blo
 
 		FEDCBA98 76543210 FEDCBA98 76543210
-		                  ---- alo*blo ---- 
+		                  ---- alo*blo ----
 		         ---- alo*bhi ----
 		         ---- ahi*blo ----
 		---- ahi*bhi ----
@@ -354,9 +354,9 @@ func mulUint128_64(a, b uint64) (hi, lo uint64) {
 	lo = alo * blo
 	mid1 := alo * bhi
 	mid2 := ahi * blo
-	c1, lo := addUint128_64(lo, mid1<<w)
-	c2, lo := addUint128_64(lo, mid2<<w)
-	_, hi = addUint128_64(ahi*bhi, mid1>>w+mid2>>w+uint64(c1+c2))
+	c1, lo := AddUint128_64(lo, mid1<<w)
+	c2, lo := AddUint128_64(lo, mid2<<w)
+	_, hi = AddUint128_64(ahi*bhi, mid1>>w+mid2>>w+uint64(c1+c2))
 	return
 }
 
@@ -455,7 +455,7 @@ func PowerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
 /*
 ProbablyPrimeUint32 returns true if n is prime or n is a pseudoprime to base a.
 It implements the Miller-Rabin primality test for one specific value of 'a' and
-k == 1. 
+k == 1.
 
 Wrt pseudocode shown at
 http://en.wikipedia.org/wiki/Miller-Rabin_primality_test#Algorithm_and_running_time

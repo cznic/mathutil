@@ -354,7 +354,7 @@ func FactorInt(n uint32) (f FactorTerms) {
 }
 
 // PrimorialProductsUint32 returns a slice of numbers in [lo, hi] which are a
-// product of max 'max' primorials. The slice is not sorted. 
+// product of max 'max' primorials. The slice is not sorted.
 //
 // See also: http://en.wikipedia.org/wiki/Primorial
 func PrimorialProductsUint32(lo, hi, max uint32) (r []uint32) {

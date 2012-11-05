@@ -1953,7 +1953,7 @@ func TestAdd128(t *testing.T) {
 	for i := 0; i < N; i++ {
 		a, b := uint64(r.Next().Int64()), uint64(r.Next().Int64())
 		aa, bb := Uint64ToBigInt(a), Uint64ToBigInt(b)
-		mhi, mlo := addUint128_64(a, b)
+		mhi, mlo := AddUint128_64(a, b)
 		m := Uint64ToBigInt(uint64(mhi))
 		m.Lsh(m, 64)
 		m.Add(m, Uint64ToBigInt(mlo))
@@ -1970,7 +1970,7 @@ func TestMul128(t *testing.T) {
 	var mm big.Int
 	f := func(a, b uint64) {
 		aa, bb := Uint64ToBigInt(a), Uint64ToBigInt(b)
-		mhi, mlo := mulUint128_64(a, b)
+		mhi, mlo := MulUint128_64(a, b)
 		m := Uint64ToBigInt(mhi)
 		m.Lsh(m, 64)
 		m.Add(m, Uint64ToBigInt(mlo))
@@ -2005,7 +2005,7 @@ func BenchmarkMul128(b *testing.B) {
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		v := a[i&(N-1)]
-		mulUint128_64(v.a, v.b)
+		MulUint128_64(v.a, v.b)
 	}
 }
 

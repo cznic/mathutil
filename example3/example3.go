@@ -16,7 +16,7 @@ import (
 	"os"
 )
 
-/* 
+/*
 
 $ # Usage e.g.:
 $ go run example3.go -max 1024 > rand.dat # generate 1kB of "random" data

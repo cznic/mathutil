@@ -17,7 +17,7 @@ import (
 	"os"
 )
 
-/* 
+/*
 
 $ # Usage e.g.:
 $ go run example.go -max 1024 > mathutil.dat # generate 1kB of "random" data

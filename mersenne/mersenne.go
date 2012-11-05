@@ -89,7 +89,7 @@ var Knowns = []uint32{
 }
 
 // Known maps the exponent of known Mersenne primes its ordinal number/rank.
-// Ranks > 41 are currently provisional. 
+// Ranks > 41 are currently provisional.
 var Known map[uint32]int
 
 func init() {
@@ -173,7 +173,7 @@ func FromFactorBigInt(d *big.Int, max uint32) (n uint32) {
 }
 
 // Mod sets mod to n % Mexp and returns mod. It panics for exp == 0 || exp >=
-// math.MaxInt32 || n < 0. 
+// math.MaxInt32 || n < 0.
 func Mod(mod, n *big.Int, exp uint32) *big.Int {
 	if exp == 0 || exp >= math.MaxInt32 || n.Sign() < 0 {
 		panic(0)
@@ -195,7 +195,7 @@ func Mod(mod, n *big.Int, exp uint32) *big.Int {
 }
 
 // ModPow2 returns x such that 2^Me % Mm == 2^x. It panics for m < 2.  Typical
-// run time is < 1 µs. Use instead of ModPow(2, e, m) wherever possible. 
+// run time is < 1 µs. Use instead of ModPow(2, e, m) wherever possible.
 func ModPow2(e, m uint32) (x uint32) {
 	/*
 		m < 2 -> panic
