@@ -329,7 +329,7 @@ func UintptrBits() int {
 }
 
 // AddUint128_64 returns the uint128 sum of uint64 a and b.
-func AddUint128_64(a, b uint64) (hi byte, lo uint64) {
+func AddUint128_64(a, b uint64) (hi uint64, lo uint64) {
 	lo = a + b
 	if lo < a {
 		hi = 1

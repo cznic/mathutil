@@ -1954,7 +1954,7 @@ func TestAdd128(t *testing.T) {
 		a, b := uint64(r.Next().Int64()), uint64(r.Next().Int64())
 		aa, bb := Uint64ToBigInt(a), Uint64ToBigInt(b)
 		mhi, mlo := AddUint128_64(a, b)
-		m := Uint64ToBigInt(uint64(mhi))
+		m := Uint64ToBigInt(mhi)
 		m.Lsh(m, 64)
 		m.Add(m, Uint64ToBigInt(mlo))
 		mm.Add(aa, bb)
