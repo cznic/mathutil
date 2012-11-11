@@ -585,3 +585,227 @@ func ProbablyPrimeBigInt(n, a *big.Int) bool {
 	}
 	return false
 }
+
+var (
+	maxInt64 = int64(math.MaxInt64)
+	minInt64 = int64(math.MinInt64)
+	maxInt   = int(math.MaxInt32)
+	minInt   = int(math.MinInt32)
+
+	maxUint64 = uint64(math.MaxUint64)
+	maxUint   = uint(math.MaxUint32)
+)
+
+func init() {
+	i, u := 1, uint(1)
+	if i, u = i<<32, u<<32; (i != 0) != (u != 0) {
+		panic("Specs violation") // http://golang.org/ref/spec#Numeric_types
+	}
+
+	// Silly things required to support both int=32b and int=64b Go editions.
+	if n := 1; n<<32 != 0 {
+		maxInt, minInt = int(maxInt64), int(minInt64)
+		maxUint = uint(maxUint64)
+	}
+}
+
+// MaxInt returns the largest int value. On systems where int is 32 bit this is
+// the same value as math.MaxInt32. On systems where int is 64 bit this is the
+// same value as math.MaxInt64.
+func MaxInt() int {
+	return maxInt
+}
+
+// MinInt returns the smallest int value. On systems where int is 32 bit this
+// is the same value as math.MinInt32. On systems where int is 64 bit this is
+// the same value as math.MinInt64.
+func MinInt() int {
+	return minInt
+}
+
+// MaxUint returns the largest uint value. On systems where uint is 32 bit this
+// is the same value as math.MaxUint32. On systems where int is 64 bit this is
+// the same value as math.MaxUint64.
+func MaxUint() uint {
+	return maxUint
+}
+
+// Max returns the larger of a and b.
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+// Min returns the smaller of a and b.
+func Min(a, b int) int {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+// UMax returns the larger of a and b.
+func UMax(a, b uint) uint {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+// UMin returns the smaller of a and b.
+func UMin(a, b uint) uint {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+// MaxByte returns the larger of a and b.
+func MaxByte(a, b byte) byte {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+// MinByte returns the smaller of a and b.
+func MinByte(a, b byte) byte {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+// MaxInt8 returns the larger of a and b.
+func MaxInt8(a, b int8) int8 {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+// MinInt8 returns the smaller of a and b.
+func MinInt8(a, b int8) int8 {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+// MaxUint16 returns the larger of a and b.
+func MaxUint16(a, b uint16) uint16 {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+// MinUint16 returns the smaller of a and b.
+func MinUint16(a, b uint16) uint16 {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+// MaxInt16 returns the larger of a and b.
+func MaxInt16(a, b int16) int16 {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+// MinInt16 returns the smaller of a and b.
+func MinInt16(a, b int16) int16 {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+// MaxUint32 returns the larger of a and b.
+func MaxUint32(a, b uint32) uint32 {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+// MinUint32 returns the smaller of a and b.
+func MinUint32(a, b uint32) uint32 {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+// MaxInt32 returns the larger of a and b.
+func MaxInt32(a, b int32) int32 {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+// MinInt32 returns the smaller of a and b.
+func MinInt32(a, b int32) int32 {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+// MaxUint64 returns the larger of a and b.
+func MaxUint64(a, b uint64) uint64 {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+// MinUint64 returns the smaller of a and b.
+func MinUint64(a, b uint64) uint64 {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
+// MaxInt64 returns the larger of a and b.
+func MaxInt64(a, b int64) int64 {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+// MinInt64 returns the smaller of a and b.
+func MinInt64(a, b int64) int64 {
+	if a < b {
+		return a
+	}
+
+	return b
+}
