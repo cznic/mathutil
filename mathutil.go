@@ -6,6 +6,15 @@
 
 // Package mathutil provides utilities supplementing the standard 'math' and
 // 'math/rand' packages.
+//
+// Compatibility issues
+//
+// 2012-12-12: The following functions will be DEPRECATED with Go release
+// 1.0.3+1 and REMOVED with Go release 1.0.3+2, b/c of
+// http://code.google.com/p/go/source/detail?r=954a79ee3ea8
+//
+//  func Uint64ToBigInt(n uint64) *big.Int
+//  func Uint64FromBigInt(n *big.Int) (uint64, bool)
 package mathutil
 
 import (
@@ -290,6 +299,10 @@ func init() {
 }
 
 // Uint64ToBigInt returns a big.Int set to n.
+//
+// NOTE: This function will be DEPRECATED with Go release 1.0.3+1 and REMOVED
+// with Go release 1.0.3+2, b/c of
+// http://code.google.com/p/go/source/detail?r=954a79ee3ea8
 func Uint64ToBigInt(n uint64) *big.Int {
 	if n <= math.MaxInt64 {
 		return big.NewInt(int64(n))
@@ -301,6 +314,10 @@ func Uint64ToBigInt(n uint64) *big.Int {
 
 // Uint64FromBigInt returns (uint64 value of n, true) if 0 <= n <=
 // math.MaxUint64.  Otherwise it returns  (undefined value, false).
+//
+// NOTE: This function will be DEPRECATED with Go release 1.0.3+1 and REMOVED
+// with Go release 1.0.3+2, b/c of
+// http://code.google.com/p/go/source/detail?r=954a79ee3ea8
 func Uint64FromBigInt(n *big.Int) (uint64, bool) {
 	switch bits := n.BitLen(); {
 	case bits == 0:

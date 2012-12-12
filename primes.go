@@ -56,8 +56,9 @@ func IsPrimeUint16(n uint16) bool {
 	panic("unreachable")
 }
 
-// NextPrimeUint16 returns first prime > n and true if successful or an undefined value and false if there
-// is no next prime in the uint16 limits. Typical run time is few µs.
+// NextPrimeUint16 returns first prime > n and true if successful or an
+// undefined value and false if there is no next prime in the uint16 limits.
+// Typical run time is few µs.
 func NextPrimeUint16(n uint16) (p uint16, ok bool) {
 	if n >= 65521 {
 		return
