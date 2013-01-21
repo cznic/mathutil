@@ -27,10 +27,19 @@ func r32() *FC32 {
 }
 
 var (
-	r64lo = big.NewInt(math.MinInt64)
-	r64hi = big.NewInt(math.MaxInt64)
-	_3    = big.NewInt(3)
+	r64lo          = big.NewInt(math.MinInt64)
+	r64hi          = big.NewInt(math.MaxInt64)
+	_3             = big.NewInt(3)
+	MinIntM1       = MinInt
+	MaxIntP1       = MaxInt
+	MaxUintP1 uint = MaxUint
 )
+
+func init() {
+	MinIntM1--
+	MaxIntP1++
+	MaxUintP1++
+}
 
 func r64() *FCBig {
 	r, err := NewFCBig(r64lo, r64hi, true)
@@ -2904,41 +2913,41 @@ func TestEnvelope(t *testing.T) {
 }
 
 func TestMaxInt(t *testing.T) {
-	n := int64(MaxInt())
+	n := int64(MaxInt)
 	if n != math.MaxInt32 && n != math.MaxInt64 {
 		t.Error()
 	}
 
-	t.Logf("64 bit ints: %t, MaxInt(): %d", n == math.MaxInt64, n)
+	t.Logf("64 bit ints: %t, MaxInt: %d", n == math.MaxInt64, n)
 }
 
 func TestMinInt(t *testing.T) {
-	n := int64(MinInt())
+	n := int64(MinInt)
 	if n != math.MinInt32 && n != math.MinInt64 {
 		t.Error()
 	}
 
-	t.Logf("64 bit ints: %t. MinInt(): %d", n == math.MinInt64, n)
+	t.Logf("64 bit ints: %t. MinInt: %d", n == math.MinInt64, n)
 }
 
 func TestMaxUint(t *testing.T) {
-	n := uint64(MaxUint())
+	n := uint64(MaxUint)
 	if n != math.MaxUint32 && n != math.MaxUint64 {
 		t.Error()
 	}
 
-	t.Logf("64 bit uints: %t. MaxUint(): %d", n == math.MaxUint64, n)
+	t.Logf("64 bit uints: %t. MaxUint: %d", n == math.MaxUint64, n)
 }
 
 func TestMax(t *testing.T) {
 	tests := []struct{ a, b, e int }{
-		{MinInt(), MinInt() - 1, MaxInt()},
-		{MinInt() - 1, MinInt(), MaxInt()},
-		{MinInt() - 1, MinInt() - 1, MaxInt()},
+		{MinInt, MinIntM1, MaxInt},
+		{MinIntM1, MinInt, MaxInt},
+		{MinIntM1, MinIntM1, MaxInt},
 
-		{MinInt(), MinInt(), MinInt()},
-		{MinInt() + 1, MinInt(), MinInt() + 1},
-		{MinInt(), MinInt() + 1, MinInt() + 1},
+		{MinInt, MinInt, MinInt},
+		{MinInt + 1, MinInt, MinInt + 1},
+		{MinInt, MinInt + 1, MinInt + 1},
 
 		{-1, -1, -1},
 		{-1, 0, 0},
@@ -2952,13 +2961,13 @@ func TestMax(t *testing.T) {
 		{1, 0, 1},
 		{1, 1, 1},
 
-		{MaxInt(), MaxInt(), MaxInt()},
-		{MaxInt() - 1, MaxInt(), MaxInt()},
-		{MaxInt(), MaxInt() - 1, MaxInt()},
+		{MaxInt, MaxInt, MaxInt},
+		{MaxInt - 1, MaxInt, MaxInt},
+		{MaxInt, MaxInt - 1, MaxInt},
 
-		{MaxInt() + 1, MaxInt(), MaxInt()},
-		{MaxInt(), MaxInt() + 1, MaxInt()},
-		{MaxInt() + 1, MaxInt() + 1, MinInt()},
+		{MaxIntP1, MaxInt, MaxInt},
+		{MaxInt, MaxIntP1, MaxInt},
+		{MaxIntP1, MaxIntP1, MinInt},
 	}
 
 	for _, test := range tests {
@@ -2970,13 +2979,13 @@ func TestMax(t *testing.T) {
 
 func TestMin(t *testing.T) {
 	tests := []struct{ a, b, e int }{
-		{MinInt() - 1, MinInt(), MinInt()},
-		{MinInt(), MinInt() - 1, MinInt()},
-		{MinInt() - 1, MinInt() - 1, MaxInt()},
+		{MinIntM1, MinInt, MinInt},
+		{MinInt, MinIntM1, MinInt},
+		{MinIntM1, MinIntM1, MaxInt},
 
-		{MinInt(), MinInt(), MinInt()},
-		{MinInt() + 1, MinInt(), MinInt()},
-		{MinInt(), MinInt() + 1, MinInt()},
+		{MinInt, MinInt, MinInt},
+		{MinInt + 1, MinInt, MinInt},
+		{MinInt, MinInt + 1, MinInt},
 
 		{-1, -1, -1},
 		{-1, 0, -1},
@@ -2990,13 +2999,13 @@ func TestMin(t *testing.T) {
 		{1, 0, 0},
 		{1, 1, 1},
 
-		{MaxInt(), MaxInt(), MaxInt()},
-		{MaxInt() - 1, MaxInt(), MaxInt() - 1},
-		{MaxInt(), MaxInt() - 1, MaxInt() - 1},
+		{MaxInt, MaxInt, MaxInt},
+		{MaxInt - 1, MaxInt, MaxInt - 1},
+		{MaxInt, MaxInt - 1, MaxInt - 1},
 
-		{MaxInt() + 1, MaxInt(), MinInt()},
-		{MaxInt(), MaxInt() + 1, MinInt()},
-		{MaxInt() + 1, MaxInt() + 1, MinInt()},
+		{MaxIntP1, MaxInt, MinInt},
+		{MaxInt, MaxIntP1, MinInt},
+		{MaxIntP1, MaxIntP1, MinInt},
 	}
 
 	for _, test := range tests {
@@ -3017,14 +3026,14 @@ func TestUMax(t *testing.T) {
 		{11, 10, 11},
 		{11, 11, 11},
 
-		{MaxUint(), MaxUint(), MaxUint()},
-		{MaxUint(), MaxUint() - 1, MaxUint()},
-		{MaxUint() - 1, MaxUint(), MaxUint()},
-		{MaxUint() - 1, MaxUint() - 1, MaxUint() - 1},
+		{MaxUint, MaxUint, MaxUint},
+		{MaxUint, MaxUint - 1, MaxUint},
+		{MaxUint - 1, MaxUint, MaxUint},
+		{MaxUint - 1, MaxUint - 1, MaxUint - 1},
 
-		{MaxUint(), MaxUint() + 1, MaxUint()},
-		{MaxUint() + 1, MaxUint(), MaxUint()},
-		{MaxUint() + 1, MaxUint() + 1, 0},
+		{MaxUint, MaxUintP1, MaxUint},
+		{MaxUintP1, MaxUint, MaxUint},
+		{MaxUintP1, MaxUintP1, 0},
 	}
 
 	for _, test := range tests {
@@ -3045,14 +3054,14 @@ func TestUMin(t *testing.T) {
 		{11, 10, 10},
 		{11, 11, 11},
 
-		{MaxUint(), MaxUint(), MaxUint()},
-		{MaxUint(), MaxUint() - 1, MaxUint() - 1},
-		{MaxUint() - 1, MaxUint(), MaxUint() - 1},
-		{MaxUint() - 1, MaxUint() - 1, MaxUint() - 1},
+		{MaxUint, MaxUint, MaxUint},
+		{MaxUint, MaxUint - 1, MaxUint - 1},
+		{MaxUint - 1, MaxUint, MaxUint - 1},
+		{MaxUint - 1, MaxUint - 1, MaxUint - 1},
 
-		{MaxUint(), MaxUint() + 1, 0},
-		{MaxUint() + 1, MaxUint(), 0},
-		{MaxUint() + 1, MaxUint() + 1, 0},
+		{MaxUint, MaxUintP1, 0},
+		{MaxUintP1, MaxUint, 0},
+		{MaxUintP1, MaxUintP1, 0},
 	}
 
 	for _, test := range tests {

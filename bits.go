@@ -39,7 +39,7 @@ func BitLenUint32(n uint32) int {
 
 // BitLen returns the bit width of the non zero part of n.
 func BitLen(n int) int { // Should handle correctly [future] 64 bit Go ints
-	if n<<32 != 0 {
+	if IntBits == 64 {
 		return BitLenUint64(uint64(n))
 	}
 
@@ -60,7 +60,7 @@ func BitLen(n int) int { // Should handle correctly [future] 64 bit Go ints
 
 // BitLenUint returns the bit width of the non zero part of n.
 func BitLenUint(n uint) int { // Should handle correctly [future] 64 bit Go uints
-	if n<<32 != 0 {
+	if IntBits == 64 {
 		return BitLenUint64(uint64(n))
 	}
 
@@ -163,29 +163,29 @@ func PopCountUint32(n uint32) int {
 
 // PopCount returns population count of n (number of bits set in n).
 func PopCount(n int) int { // Should handle correctly [future] 64 bit Go ints
-	if n<<32 == 0 {
-		return PopCountUint32(uint32(n))
+	if IntBits == 64 {
+		return PopCountUint64(uint64(n))
 	}
 
-	return PopCountUint64(uint64(n))
+	return PopCountUint32(uint32(n))
 }
 
 // PopCountUint returns population count of n (number of bits set in n).
 func PopCountUint(n uint) int { // Should handle correctly [future] 64 bit Go uints
-	if n<<32 == 0 {
-		return PopCountUint32(uint32(n))
+	if IntBits == 64 {
+		return PopCountUint64(uint64(n))
 	}
 
-	return PopCountUint64(uint64(n))
+	return PopCountUint32(uint32(n))
 }
 
 // PopCountUintptr returns population count of n (number of bits set in n).
 func PopCountUintptr(n uintptr) int {
-	if n<<32 == 0 {
-		return PopCountUint32(uint32(n))
+	if UintPtrBits == 64 {
+		return PopCountUint64(uint64(n))
 	}
 
-	return PopCountUint64(uint64(n))
+	return PopCountUint32(uint32(n))
 }
 
 // PopCountUint64 returns population count of n (number of bits set in n).
