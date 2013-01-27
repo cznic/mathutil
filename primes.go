@@ -10,61 +10,16 @@ import (
 	"math"
 )
 
-func findSmallPrime(n uint16) (index int, found bool) {
-	x := n >> 8
-	l, h := int(smallLimits[x]), int(smallLimits[x+1])
-	for l <= h {
-		index := (l + h) / 2
-		p := smallPrimes[index]
-		switch {
-		case n > p:
-			l = index + 1
-		case n < p:
-			h = index - 1
-		default:
-			return index, true
-		}
-	}
-	return l, false
-}
-
-func isPrimeUint16(n uint16) (isPrime bool) {
-	_, isPrime = findSmallPrime(n)
-	return
-}
-
 // IsPrimeUint16 returns true if n is prime. Typical run time is few tens of ns.
 func IsPrimeUint16(n uint16) bool {
-	switch {
-	case n < 2 || n&1 == 0:
-		return n == 2
-	case n%3 == 0:
-		return n == 3
-	case n%3 == 0:
-		return n == 3
-	case n%5 == 0:
-		return n == 5
-	case n%7 == 0:
-		return n == 7
-	case n%11 == 0:
-		return n == 11
-	case n%13 == 0:
-		return n == 13 // Benchmarked optimum
-	default:
-		return isPrimeUint16(n)
-	}
-	panic("unreachable")
+	return n > 0 && primes16[n-1] == 1
 }
 
 // NextPrimeUint16 returns first prime > n and true if successful or an
 // undefined value and false if there is no next prime in the uint16 limits.
 // Typical run time is few µs.
 func NextPrimeUint16(n uint16) (p uint16, ok bool) {
-	if n >= 65521 {
-		return
-	}
-	i, _ := findSmallPrime(n + 1)
-	return smallPrimes[i], true
+	return n + uint16(primes16[n]), n < 65521
 }
 
 // IsPrime returns true if n is prime. Typical run time is about 100 ns.
@@ -185,7 +140,7 @@ func IsPrimeUint64(n uint64) bool {
 	case n%89 == 0:
 		return n == 89 // Benchmarked optimum
 	case n <= math.MaxUint16:
-		return isPrimeUint16(uint16(n))
+		return IsPrimeUint16(uint16(n))
 	case n <= math.MaxUint32:
 		return ProbablyPrimeUint32(uint32(n), 11000544) &&
 			ProbablyPrimeUint32(uint32(n), 31481107)
@@ -328,7 +283,13 @@ func FactorInt(n uint32) (f FactorTerms) {
 	}
 
 	f, w := make([]FactorTerm, 9), 0
-	for _, prime16 := range smallPrimes {
+	prime16 := uint16(0)
+	for {
+		var ok bool
+		if prime16, ok = NextPrimeUint16(prime16); !ok {
+			break
+		}
+
 		prime := uint32(prime16)
 		if prime*prime > n {
 			break
