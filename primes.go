@@ -10,14 +10,14 @@ import (
 	"math"
 )
 
-// IsPrimeUint16 returns true if n is prime. Typical run time is few tens of ns.
+// IsPrimeUint16 returns true if n is prime. Typical run time is few ns.
 func IsPrimeUint16(n uint16) bool {
 	return n > 0 && primes16[n-1] == 1
 }
 
 // NextPrimeUint16 returns first prime > n and true if successful or an
 // undefined value and false if there is no next prime in the uint16 limits.
-// Typical run time is few µs.
+// Typical run time is few ns.
 func NextPrimeUint16(n uint16) (p uint16, ok bool) {
 	return n + uint16(primes16[n]), n < 65521
 }
@@ -273,7 +273,7 @@ type FactorTerm struct {
 type FactorTerms []FactorTerm
 
 // FactorInt returns prime factorization of n > 1 or nil otherwise.
-// Resulting factors are ordered by Prime. Typical run time is < 10 µs.
+// Resulting factors are ordered by Prime. Typical run time is few µs.
 func FactorInt(n uint32) (f FactorTerms) {
 	switch {
 	case n < 2:
