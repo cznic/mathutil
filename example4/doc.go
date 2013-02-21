@@ -10,4 +10,4 @@ To run the example
  $ go run main.go
 
 */
-package documentation
+package main
