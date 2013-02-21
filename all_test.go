@@ -1521,7 +1521,7 @@ func TestUint64ToBigInt(t *testing.T) {
 		g := Uint64ToBigInt(n)
 		e.SetString(fmt.Sprintf("%d", n), 10)
 		if g.Cmp(&e) != 0 {
-			t.Fatalf("got %s(0x%x), exp %d(0x%x)", g, g, n, n)
+			t.Fatalf("got %s(%#x), exp %d(%#x)", g, g, n, n)
 		}
 	}
 
