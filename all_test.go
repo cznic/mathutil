@@ -3502,3 +3502,65 @@ func TestMinInt64(t *testing.T) {
 		}
 	}
 }
+
+func TestPopCountBigInt(t *testing.T) {
+	const N = 1e4
+	rng := rand.New(rand.NewSource(42))
+	lim := big.NewInt(0)
+	lim.SetBit(lim, 1e3, 1)
+	z := big.NewInt(0)
+	m1 := big.NewInt(-1)
+	for i := 0; i < N; i++ {
+		z.Rand(rng, lim)
+		g := PopCountBigInt(z)
+		e := 0
+		for bit := 0; bit < z.BitLen(); bit++ {
+			if z.Bit(bit) != 0 {
+				e++
+			}
+		}
+		if g != e {
+			t.Fatal(g, e)
+		}
+
+		z.Mul(z, m1)
+		if g := PopCountBigInt(z); g != e {
+			t.Fatal(g, e)
+		}
+	}
+}
+
+func benchmarkPopCountBigInt(b *testing.B, bits int) {
+	lim := big.NewInt(0)
+	lim.SetBit(lim, bits, 1)
+	z := big.NewInt(0)
+	z.Rand(rand.New(rand.NewSource(42)), lim)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		PopCountBigInt(z)
+	}
+}
+
+func BenchmarkPopCountBigInt1e1(b *testing.B) {
+	benchmarkPopCountBigInt(b, 1e1)
+}
+
+func BenchmarkPopCountBigInt1e2(b *testing.B) {
+	benchmarkPopCountBigInt(b, 1e2)
+}
+
+func BenchmarkPopCountBigInt1e3(b *testing.B) {
+	benchmarkPopCountBigInt(b, 1e3)
+}
+
+func BenchmarkPopCountBigIbnt1e4(b *testing.B) {
+	benchmarkPopCountBigInt(b, 1e4)
+}
+
+func BenchmarkPopCountBigInt1e5(b *testing.B) {
+	benchmarkPopCountBigInt(b, 1e5)
+}
+
+func BenchmarkPopCountBigInt1e6(b *testing.B) {
+	benchmarkPopCountBigInt(b, 1e6)
+}

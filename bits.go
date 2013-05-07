@@ -6,6 +6,10 @@
 
 package mathutil
 
+import (
+	"math/big"
+)
+
 // BitLenByte returns the bit width of the non zero part of n.
 func BitLenByte(n byte) int {
 	return log2[n] + 1
@@ -194,4 +198,12 @@ func PopCountUint64(n uint64) int {
 		int(popcnt[byte(n>>40)]) + int(popcnt[byte(n>>32)]) +
 		int(popcnt[byte(n>>24)]) + int(popcnt[byte(n>>16)]) +
 		int(popcnt[byte(n>>8)]) + int(popcnt[byte(n)])
+}
+
+// PopCountBigInt returns population count of |n| (number of bits set in |n|).
+func PopCountBigInt(n *big.Int) (r int) {
+	for _, v := range n.Bits() {
+		r += PopCountUintptr(uintptr(v))
+	}
+	return
 }
