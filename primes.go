@@ -83,7 +83,6 @@ func IsPrime(n uint32) bool {
 		}
 		return true
 	}
-	panic("unreachable")
 }
 
 // IsPrimeUint64 returns true if n is prime. Typical run time is few tens of µs.
@@ -168,7 +167,6 @@ func IsPrimeUint64(n uint64) bool {
 			ProbablyPrimeUint64_32(n, 9780504) &&
 			ProbablyPrimeUint64_32(n, 1795265022)
 	}
-	panic("unreachable")
 }
 
 // NextPrime returns first prime > n and true if successful or an undefined value and false if there

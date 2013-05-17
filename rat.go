@@ -19,7 +19,6 @@ func QCmpUint32(a, b, c, d uint32) int {
 	default: // x > y
 		return 1
 	}
-	panic("unreachable")
 }
 
 // QScaleUint32 returns a such that a/b >= c/d.

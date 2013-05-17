@@ -43,5 +43,4 @@ func Envelope(x float64, points []float64, approximation Approximation) float64 
 	default:
 		return l + (r-l)*rmod
 	}
-	panic("unreachable")
 }

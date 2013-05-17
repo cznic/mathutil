@@ -9,6 +9,13 @@
 //
 // Compatibility issues
 //
+// 2013-05-13: The following functions are now DEPRECATED
+//
+// 	func Uint64ToBigInt(n uint64) *big.Int
+// 	func Uint64FromBigInt(n *big.Int) (uint64, bool)
+//
+// These functions will be REMOVED with Go release 1.1+1.
+//
 // 2013-01-21: The following functions have been REMOVED
 //
 // 	func MaxInt() int
@@ -335,8 +342,8 @@ func init() {
 
 // Uint64ToBigInt returns a big.Int set to n.
 //
-// NOTE: This function will be DEPRECATED with Go release 1.0.3+1 and REMOVED
-// with Go release 1.0.3+2, b/c of
+// NOTE: This function is DEPRECATED with Go release 1.1 and will be REMOVED
+// with Go release 1.1+1, b/c of
 // http://code.google.com/p/go/source/detail?r=954a79ee3ea8
 func Uint64ToBigInt(n uint64) *big.Int {
 	if n <= math.MaxInt64 {
@@ -350,8 +357,8 @@ func Uint64ToBigInt(n uint64) *big.Int {
 // Uint64FromBigInt returns (uint64 value of n, true) if 0 <= n <=
 // math.MaxUint64.  Otherwise it returns  (undefined value, false).
 //
-// NOTE: This function will be DEPRECATED with Go release 1.0.3+1 and REMOVED
-// with Go release 1.0.3+2, b/c of
+// NOTE: This function is DEPRECATED with Go release 1.1 and will be REMOVED
+// with Go release 1.1+1, b/c of
 // http://code.google.com/p/go/source/detail?r=954a79ee3ea8
 func Uint64FromBigInt(n *big.Int) (uint64, bool) {
 	switch bits := n.BitLen(); {
@@ -365,7 +372,6 @@ func Uint64FromBigInt(n *big.Int) (uint64, bool) {
 		b := n.Bits()
 		return uint64(b[1])<<uint(uintptrBits) | uint64(b[0]), true
 	}
-	panic("unreachable")
 }
 
 var uintptrBits int
@@ -474,7 +480,6 @@ func PowerizeBigInt(b, n *big.Int) (e uint32, p *big.Int) {
 			return
 		}
 	}
-	panic("unreachable")
 }
 
 // PowerizeUint32BigInt returns (e, p) such that e is the smallest number for

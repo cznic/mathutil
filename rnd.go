@@ -170,7 +170,6 @@ func (r *FC32) step(dir int) int {
 			return int(y) + r.lo
 		}
 	}
-	panic("unreachable")
 }
 
 func delete(set []int64, i int) (y []int64) {
@@ -364,7 +363,6 @@ func (r *FCBig) step(dir int) (y *big.Int) {
 		}
 		y.SetInt64(0)
 	}
-	panic("unreachable")
 }
 
 func deleteBig(set []*big.Int, i int) (y []*big.Int) {
