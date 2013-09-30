@@ -8,7 +8,7 @@ of their properties.
 
 Exponent
 
-In this documentatoin the term 'exponent' refers to 'n' of a Mersenne number Mn
+In this documentation the term 'exponent' refers to 'n' of a Mersenne number Mn
 equal to 2^n-1. This package supports only uint32 sized exponents. New()
 currently supports exponents only up to math.MaxInt32 (31 bits, up to 256 MB
 required to represent such Mn in memory as a big.Int).
@@ -21,9 +21,11 @@ Referenced from above:
 package mersenne
 
 import (
-	"github.com/cznic/mathutil"
 	"math"
 	"math/big"
+
+	"github.com/cznic/mathutil"
+	"github.com/remyoudompheng/bigfft"
 )
 
 var (
@@ -262,9 +264,9 @@ func ModPow(b, e, m uint32) (r *big.Int) {
 	bb := big.NewInt(int64(b))
 	r = big.NewInt(1)
 	for ; e != 0; e-- {
-		r.Mul(r, bb)
+		r = bigfft.Mul(r, bb)
 		Mod(r, r, m)
-		bb.Mul(bb, bb)
+		bb = bigfft.Mul(bb, bb)
 		Mod(bb, bb, m)
 	}
 	return

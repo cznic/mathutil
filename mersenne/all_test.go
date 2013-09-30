@@ -5,13 +5,14 @@
 package mersenne
 
 import (
-	"github.com/cznic/mathutil"
 	"math"
 	"math/big"
 	"math/rand"
 	"runtime"
 	"sync"
 	"testing"
+
+	"github.com/cznic/mathutil"
 )
 
 func r32() *mathutil.FC32 {
