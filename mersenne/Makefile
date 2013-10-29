@@ -16,7 +16,4 @@ todo:
 	@grep -n BUG *.go || true
 
 clean:
-	rm -f *~ cov cov.html _testdata/temp*
-
-gocov:
-	gocov test $(COV) | gocov-html > cov.html
+	rm -f *~

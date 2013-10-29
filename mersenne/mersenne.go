@@ -131,6 +131,12 @@ func HasFactorBigInt(d *big.Int, n uint32) bool {
 		mathutil.ModPowBigInt(_2, big.NewInt(int64(n)), d).Cmp(_1) == 0
 }
 
+// HasFactorBigInt2 returns true if d | Mn, d > 0
+func HasFactorBigInt2(d, n *big.Int) bool {
+	return d.Cmp(_1) == 0 || d.Sign() > 0 && d.Bit(0) == 1 &&
+		mathutil.ModPowBigInt(_2, n, d).Cmp(_1) == 0
+}
+
 /*
 FromFactorBigInt returns n such that d | Mn if n <= max and d is odd. In other
 cases zero is returned.

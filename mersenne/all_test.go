@@ -300,6 +300,10 @@ func TestHasFactorBigInt(t *testing.T) {
 		if g, e := HasFactorBigInt(&d, v.e), v.r; g != e {
 			t.Errorf("d %s e %d: got %t, exp %t", &d, v.e, g, e)
 		}
+
+		if g, e := HasFactorBigInt2(&d, big.NewInt(int64(v.e))), v.r; g != e {
+			t.Errorf("d %s e %d: got %t, exp %t", &d, v.e, g, e)
+		}
 	}
 }
 
@@ -406,7 +410,7 @@ func BenchmarkHasFactorBigInt_104b(b *testing.B) {
 		r = HasFactorBigInt(f104b, 100279)
 	}
 	if !r {
-		b.Fatal()
+		b.Fatal(r)
 	}
 }
 
@@ -423,7 +427,7 @@ func BenchmarkHasFactorBigIntMod104b(b *testing.B) {
 		x.Mod(m, f104b)
 	}
 	if x.Cmp(_0) != 0 {
-		b.Fatal()
+		b.Fatal(x)
 	}
 }
 
@@ -439,7 +443,7 @@ func BenchmarkHasFactorBigInt_137b(b *testing.B) {
 		r = HasFactorBigInt(f137b, 7293457)
 	}
 	if !r {
-		b.Fatal()
+		b.Fatal(r)
 	}
 }
 
@@ -456,7 +460,7 @@ func BenchmarkHasFactorBigIntMod137b(b *testing.B) {
 		x.Mod(m, f137b)
 	}
 	if x.Cmp(_0) != 0 {
-		b.Fatal()
+		b.Fatal(x)
 	}
 }
 
@@ -603,7 +607,7 @@ func TestMod(t *testing.T) {
 		n.SetInt64(v.n)
 		p := Mod(&mod, &n, v.exp)
 		if p != &mod {
-			t.Fatal()
+			t.Fatal(p)
 		}
 
 		if g, e := mod.Int64(), v.mod; g != e {
