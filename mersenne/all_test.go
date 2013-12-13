@@ -627,7 +627,7 @@ func TestMod(t *testing.T) {
 	}
 
 	r32, _ := mathutil.NewFC32(1, 1e6, true)
-	r64, _ := mathutil.NewFCBig(_0, mathutil.Uint64ToBigInt(math.MaxInt64), true)
+	r64, _ := mathutil.NewFCBig(_0, big.NewInt(math.MaxInt64), true)
 	for i := 0; i < N; i++ {
 		f(r64.Next().Int64(), uint32(r32.Next()))
 	}

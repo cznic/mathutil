@@ -16,7 +16,7 @@ func PermutationFirst(data sort.Interface) {
 }
 
 // Generate the next permutation of data if possible and return true.
-// If there is no more permutation left return false.
+// Return false if there is no more permutation left.
 // Based on the algorithm described here:
 // http://en.wikipedia.org/wiki/Permutation#Generation_in_lexicographic_order
 func PermutationNext(data sort.Interface) bool {

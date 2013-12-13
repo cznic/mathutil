@@ -9,6 +9,11 @@
 //
 // Compatibility issues
 //
+// 2013-12-13: The following functions have been REMOVED
+//
+// 	func Uint64ToBigInt(n uint64) *big.Int
+// 	func Uint64FromBigInt(n *big.Int) (uint64, bool)
+//
 // 2013-05-13: The following functions are now DEPRECATED
 //
 // 	func Uint64ToBigInt(n uint64) *big.Int
@@ -302,8 +307,7 @@ func ModPowUint64(b, e, m uint64) (r uint64) {
 		return 0
 	}
 
-	r, _ = Uint64FromBigInt(modPowBigInt(Uint64ToBigInt(b), Uint64ToBigInt(e), Uint64ToBigInt(m)))
-	return
+	return modPowBigInt(big.NewInt(0).SetUint64(b), big.NewInt(0).SetUint64(e), big.NewInt(0).SetUint64(m)).Uint64()
 }
 
 func modPowBigInt(b, e, m *big.Int) (r *big.Int) {
@@ -338,40 +342,6 @@ var uint64ToBigIntDelta big.Int
 
 func init() {
 	uint64ToBigIntDelta.SetBit(&uint64ToBigIntDelta, 63, 1)
-}
-
-// Uint64ToBigInt returns a big.Int set to n.
-//
-// NOTE: This function is DEPRECATED with Go release 1.1 and will be REMOVED
-// with Go release 1.1+1, b/c of
-// http://code.google.com/p/go/source/detail?r=954a79ee3ea8
-func Uint64ToBigInt(n uint64) *big.Int {
-	if n <= math.MaxInt64 {
-		return big.NewInt(int64(n))
-	}
-
-	y := big.NewInt(int64(n - uint64(math.MaxInt64) - 1))
-	return y.Add(y, &uint64ToBigIntDelta) // Benchamrked to be faster than y.SetBit(y, 63, 1)
-}
-
-// Uint64FromBigInt returns (uint64 value of n, true) if 0 <= n <=
-// math.MaxUint64.  Otherwise it returns  (undefined value, false).
-//
-// NOTE: This function is DEPRECATED with Go release 1.1 and will be REMOVED
-// with Go release 1.1+1, b/c of
-// http://code.google.com/p/go/source/detail?r=954a79ee3ea8
-func Uint64FromBigInt(n *big.Int) (uint64, bool) {
-	switch bits := n.BitLen(); {
-	case bits == 0:
-		return 0, true
-	case n.Sign() < 0 || bits > 64:
-		return 0, false
-	case bits <= UintptrBits():
-		return uint64(n.Bits()[0]), true
-	default:
-		b := n.Bits()
-		return uint64(b[1])<<uint(uintptrBits) | uint64(b[0]), true
-	}
 }
 
 var uintptrBits int
@@ -434,7 +404,7 @@ func PowerizeBigInt(b, n *big.Int) (e uint32, p *big.Int) {
 		return
 	case n.Sign() == 0 || n.Cmp(_1) == 0:
 		return 0, big.NewInt(1)
-	case b.Cmp(_2) == 0: //TODO actually all powers of 2 should use the short path
+	case b.Cmp(_2) == 0:
 		p = big.NewInt(0)
 		e = uint32(n.BitLen() - 1)
 		p.SetBit(p, int(e), 1)
@@ -493,7 +463,7 @@ func PowerizeUint32BigInt(b uint32, n *big.Int) (e uint32, p *big.Int) {
 		return
 	case n.Sign() == 0 || n.Cmp(_1) == 0:
 		return 0, big.NewInt(1)
-	case b == 2: //TODO actually all powers of 2 should use the short path
+	case b == 2:
 		p = big.NewInt(0)
 		e = uint32(n.BitLen() - 1)
 		p.SetBit(p, int(e), 1)
@@ -570,9 +540,9 @@ func ProbablyPrimeUint64_32(n uint64, a uint32) bool {
 		return true
 	}
 
-	bx, bn := Uint64ToBigInt(x), Uint64ToBigInt(n)
+	bx, bn := big.NewInt(0).SetUint64(x), big.NewInt(0).SetUint64(n)
 	for ; s > 1; s-- {
-		if x, _ = Uint64FromBigInt(bx.Mod(bx.Mul(bx, bx), bn)); x == 1 {
+		if x = bx.Mod(bx.Mul(bx, bx), bn).Uint64(); x == 1 {
 			return false
 		}
 

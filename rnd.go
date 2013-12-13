@@ -131,7 +131,7 @@ func (r *FC32) Seed(seed int64) {
 }
 
 // Seek sets Pos to |pos| % Cycle.
-func (r *FC32) Seek(pos int64) {
+func (r *FC32) Seek(pos int64) { //vet:ignore
 	if pos < 0 {
 		pos = -pos
 	}
