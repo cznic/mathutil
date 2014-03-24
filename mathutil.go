@@ -792,3 +792,38 @@ func MinInt64(a, b int64) int64 {
 
 	return b
 }
+
+// ToBase produces n in base b. For example
+//
+// 	ToBase(2047, 22) -> [1, 5, 4]
+//
+//	1 * 22^0           1
+//	5 * 22^1         110
+//	4 * 22^2        1936
+//	                ----
+//	                2047
+//
+// ToBase panics for bases < 2.
+func ToBase(n *big.Int, b int) []int {
+	if b < 2 {
+		panic("invalid base")
+	}
+
+	k := 1
+	switch n.Sign() {
+	case -1:
+		n.Neg(n)
+		k = -1
+	case 0:
+		return []int{0}
+	}
+
+	bb := big.NewInt(int64(b))
+	var r []int
+	rem := big.NewInt(0)
+	for n.Sign() != 0 {
+		n.QuoRem(n, bb, rem)
+		r = append(r, k*int(rem.Int64()))
+	}
+	return r
+}

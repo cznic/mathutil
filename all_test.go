@@ -3447,3 +3447,41 @@ func BenchmarkPopCountBigInt1e5(b *testing.B) {
 func BenchmarkPopCountBigInt1e6(b *testing.B) {
 	benchmarkPopCountBigInt(b, 1e6)
 }
+
+func TestToBase(t *testing.T) {
+	x := ToBase(big.NewInt(0), 42)
+	e := []int{0}
+	if g, e := len(x), len(e); g != e {
+		t.Fatal(g, e)
+	}
+
+	for i, g := range x {
+		if e := e[i]; g != e {
+			t.Fatal(i, g, e)
+		}
+	}
+
+	x = ToBase(big.NewInt(2047), 22)
+	e = []int{1, 5, 4}
+	if g, e := len(x), len(e); g != e {
+		t.Fatal(g, e)
+	}
+
+	for i, g := range x {
+		if e := e[i]; g != e {
+			t.Fatal(i, g, e)
+		}
+	}
+
+	x = ToBase(big.NewInt(-2047), 22)
+	e = []int{-1, -5, -4}
+	if g, e := len(x), len(e); g != e {
+		t.Fatal(g, e)
+	}
+
+	for i, g := range x {
+		if e := e[i]; g != e {
+			t.Fatal(i, g, e)
+		}
+	}
+}
