@@ -805,14 +805,16 @@ func MinInt64(a, b int64) int64 {
 //
 // ToBase panics for bases < 2.
 func ToBase(n *big.Int, b int) []int {
+	var nn big.Int
+	nn.Set(n)
 	if b < 2 {
 		panic("invalid base")
 	}
 
 	k := 1
-	switch n.Sign() {
+	switch nn.Sign() {
 	case -1:
-		n.Neg(n)
+		nn.Neg(&nn)
 		k = -1
 	case 0:
 		return []int{0}
@@ -821,8 +823,8 @@ func ToBase(n *big.Int, b int) []int {
 	bb := big.NewInt(int64(b))
 	var r []int
 	rem := big.NewInt(0)
-	for n.Sign() != 0 {
-		n.QuoRem(n, bb, rem)
+	for nn.Sign() != 0 {
+		nn.QuoRem(&nn, bb, rem)
 		r = append(r, k*int(rem.Int64()))
 	}
 	return r
