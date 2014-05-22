@@ -4,15 +4,23 @@
 
 // +build ignore
 
+// Let QRN be the number of quadratic residues of N.  Let Q be QRN/N.  From a
+// sorted list of primorial products < 2^32 find "record breakers".  "Record
+// breaker" is N with new lowest Q.
+//
+// There are only 49 "record breakers" < 2^32.
+//
+// To run the example $ go run main.go
 package main
 
 import (
 	"fmt"
-	"github.com/cznic/mathutil"
-	"github.com/cznic/sortutil"
 	"math"
 	"sort"
 	"time"
+
+	"github.com/cznic/mathutil"
+	"github.com/cznic/sortutil"
 )
 
 func main() {
@@ -73,9 +81,9 @@ func main() {
 			bestN, bestD = hits, n
 			q := float64(hits) / float64(n)
 			fmt.Printf(
-				"\r%2s #%03d %d %d %.2f %.2E %s %s\n",
+				"\r%2s #%03d %d %d %.2f %.2E %s %s %v\n",
 				adjPrime, order, n, hits,
-				1/q, q, d, time.Now().Format("15:04:05"),
+				1/q, q, d, time.Now().Format("15:04:05"), mathutil.FactorInt(n),
 			)
 		}
 	}
