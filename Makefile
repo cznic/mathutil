@@ -1,3 +1,7 @@
+# Copyright (c) 2014 The mathutil Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
 .PHONY: all todo clean nuke
 
 grep=--include=*.go --include=*.run --include=*.y
@@ -5,6 +9,7 @@ grep=--include=*.go --include=*.run --include=*.y
 all: editor
 	go build
 	go vet || true
+	golint .
 	go install
 	make todo
 
