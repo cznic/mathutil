@@ -5,14 +5,47 @@
 package mathutil
 
 import (
+	"fmt"
 	"math"
 	"math/big"
 	"math/rand"
+	"os"
+	"path"
 	"runtime"
 	"sort"
+	"strings"
 	"sync"
 	"testing"
 )
+
+func caller(s string, va ...interface{}) {
+	_, fn, fl, _ := runtime.Caller(2)
+	fmt.Fprintf(os.Stderr, "caller: %s:%d: ", path.Base(fn), fl)
+	fmt.Fprintf(os.Stderr, s, va...)
+	fmt.Fprintln(os.Stderr)
+	_, fn, fl, _ = runtime.Caller(1)
+	fmt.Fprintf(os.Stderr, "\tcallee: %s:%d: ", path.Base(fn), fl)
+	fmt.Fprintln(os.Stderr)
+}
+
+func dbg(s string, va ...interface{}) {
+	if s == "" {
+		s = strings.Repeat("%v ", len(va))
+	}
+	_, fn, fl, _ := runtime.Caller(1)
+	fmt.Fprintf(os.Stderr, "dbg %s:%d: ", path.Base(fn), fl)
+	fmt.Fprintf(os.Stderr, s, va...)
+	fmt.Fprintln(os.Stderr)
+}
+
+func TODO(...interface{}) string {
+	_, fn, fl, _ := runtime.Caller(1)
+	return fmt.Sprintf("TODO: %s:%d:\n", path.Base(fn), fl)
+}
+
+func use(...interface{}) {}
+
+// ============================================================================
 
 func r32() *FC32 {
 	r, err := NewFC32(math.MinInt32, math.MaxInt32, true)
@@ -3481,5 +3514,17 @@ func TestToBase(t *testing.T) {
 		if e := e[i]; g != e {
 			t.Fatal(i, g, e)
 		}
+	}
+}
+
+func TestBug(t *testing.T) {
+	if BitLenUint(MaxUint) != 64 {
+		t.Logf("Bug reproducible only on 64 bit architecture")
+		return
+	}
+
+	_, err := NewFC32(MinInt, MaxInt, true)
+	if err == nil {
+		t.Fatal("Expected non nil err")
 	}
 }
