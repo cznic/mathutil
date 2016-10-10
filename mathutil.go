@@ -5,7 +5,9 @@
 // Package mathutil provides utilities supplementing the standard 'math' and
 // 'math/rand' packages.
 //
-// Compatibility issues
+// Release history and compatibility issues
+//
+// 2016-10-10: New functions QuadPolyDiscriminant and QuadPolyFactors.
 //
 // 2013-12-13: The following functions have been REMOVED
 //
