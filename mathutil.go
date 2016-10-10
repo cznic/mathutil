@@ -89,7 +89,7 @@ func GCDUint16(a, b uint16) uint16 {
 	return a
 }
 
-// GCD returns the greatest common divisor of a and b.
+// GCDUint32 returns the greatest common divisor of a and b.
 func GCDUint32(a, b uint32) uint32 {
 	for b != 0 {
 		a, b = b, a%b
@@ -97,7 +97,7 @@ func GCDUint32(a, b uint32) uint32 {
 	return a
 }
 
-// GCD64 returns the greatest common divisor of a and b.
+// GCDUint64 returns the greatest common divisor of a and b.
 func GCDUint64(a, b uint64) uint64 {
 	for b != 0 {
 		a, b = b, a%b
@@ -257,7 +257,7 @@ func ModPowByte(b, e, m byte) byte {
 	return byte(r)
 }
 
-// ModPowByte computes (b^e)%m. It panics for m == 0 || b == e == 0.
+// ModPowUint16 computes (b^e)%m. It panics for m == 0 || b == e == 0.
 func ModPowUint16(b, e, m uint16) uint16 {
 	if b == 0 && e == 0 {
 		panic(0)
@@ -382,7 +382,7 @@ func MulUint128_64(a, b uint64) (hi, lo uint64) {
 	mid2 := ahi * blo
 	c1, lo := AddUint128_64(lo, mid1<<w)
 	c2, lo := AddUint128_64(lo, mid2<<w)
-	_, hi = AddUint128_64(ahi*bhi, mid1>>w+mid2>>w+uint64(c1+c2))
+	_, hi = AddUint128_64(ahi*bhi, mid1>>w+mid2>>w+c1+c2)
 	return
 }
 
