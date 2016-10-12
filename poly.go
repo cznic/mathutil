@@ -98,20 +98,12 @@ func QuadPolyFactors(a, b, c int) (content int, primitivePart []PolyFactor, _ er
 	x1num := -b + d
 	x1denom := 2 * a
 	gcd := int(GCDUint64(abs(x1num), abs(x1denom)))
-	if gcd == 1 && x1num != 1 && x1denom != 1 {
-		return 0, nil, nil
-	}
-
 	x1num /= gcd
 	x1denom /= gcd
 
 	x2num := -b - d
 	x2denom := 2 * a
 	gcd = int(GCDUint64(abs(x2num), abs(x2denom)))
-	if gcd == 1 && x2num != 1 && x2denom != 1 {
-		return 0, nil, nil
-	}
-
 	x2num /= gcd
 	x2denom /= gcd
 
