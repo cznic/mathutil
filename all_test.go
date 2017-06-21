@@ -3728,6 +3728,7 @@ func TestFCPRNG(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	var mods, exp [3]int
 	m := make(map[int]byte, N)
 	for i := 1; i <= N; i++ {
 		n := rng.Next()
@@ -3736,6 +3737,7 @@ func TestFCPRNG(t *testing.T) {
 		}
 
 		m[n] = 1
+		mods[n%len(mods)]++
 	}
 	if g, e := len(m), N; g != e {
 		t.Fatal(g, e)
@@ -3749,4 +3751,16 @@ func TestFCPRNG(t *testing.T) {
 
 		m[n] = 0
 	}
+
+	for i := 1; i <= N; i++ {
+		exp[i%len(mods)]++
+	}
+
+	for i, g := range mods {
+		if e := exp[i]; g != e {
+			t.Fatal(g, e)
+		}
+	}
+
+	t.Log(mods)
 }
