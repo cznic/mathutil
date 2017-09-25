@@ -2930,6 +2930,23 @@ func TestMin(t *testing.T) {
 	}
 }
 
+func TestClamp(t *testing.T) {
+	tests := []struct{ v, lo, hi, e int }{
+		{0, 0, 0, 0},
+		{5, 10, 20, 10},
+		{10, 10, 20, 10},
+		{15, 10, 20, 15},
+		{20, 10, 20, 20},
+		{25, 10, 20, 20},
+	}
+
+	for _, test := range tests {
+		if g, e := Clamp(test.v, test.lo, test.hi), test.e; g != e {
+			t.Fatal(test.v, test.lo, test.hi, g, e)
+		}
+	}
+}
+
 func TestUMax(t *testing.T) {
 	tests := []struct{ a, b, e uint }{
 		{0, 0, 0},
@@ -2986,6 +3003,23 @@ func TestUMin(t *testing.T) {
 	}
 }
 
+func TestUClamp(t *testing.T) {
+	tests := []struct{ v, lo, hi, e uint }{
+		{0, 0, 0, 0},
+		{5, 10, 20, 10},
+		{10, 10, 20, 10},
+		{15, 10, 20, 15},
+		{20, 10, 20, 20},
+		{25, 10, 20, 20},
+	}
+
+	for _, test := range tests {
+		if g, e := UClamp(test.v, test.lo, test.hi), test.e; g != e {
+			t.Fatal(test.v, test.lo, test.hi, g, e)
+		}
+	}
+}
+
 func TestMaxByte(t *testing.T) {
 	tests := []struct{ a, b, e byte }{
 		{0, 0, 0},
@@ -3030,6 +3064,23 @@ func TestMinByte(t *testing.T) {
 	for _, test := range tests {
 		if g, e := MinByte(test.a, test.b), test.e; g != e {
 			t.Fatal(test.a, test.b, g, e)
+		}
+	}
+}
+
+func TestClampByte(t *testing.T) {
+	tests := []struct{ v, lo, hi, e byte }{
+		{0, 0, 0, 0},
+		{5, 10, 20, 10},
+		{10, 10, 20, 10},
+		{15, 10, 20, 15},
+		{20, 10, 20, 20},
+		{25, 10, 20, 20},
+	}
+
+	for _, test := range tests {
+		if g, e := ClampByte(test.v, test.lo, test.hi), test.e; g != e {
+			t.Fatal(test.v, test.lo, test.hi, g, e)
 		}
 	}
 }
@@ -3082,6 +3133,23 @@ func TestMinUint16(t *testing.T) {
 	}
 }
 
+func TestClampUint16(t *testing.T) {
+	tests := []struct{ v, lo, hi, e uint16 }{
+		{0, 0, 0, 0},
+		{5, 10, 20, 10},
+		{10, 10, 20, 10},
+		{15, 10, 20, 15},
+		{20, 10, 20, 20},
+		{25, 10, 20, 20},
+	}
+
+	for _, test := range tests {
+		if g, e := ClampUint16(test.v, test.lo, test.hi), test.e; g != e {
+			t.Fatal(test.v, test.lo, test.hi, g, e)
+		}
+	}
+}
+
 func TestMaxUint32(t *testing.T) {
 	tests := []struct{ a, b, e uint32 }{
 		{0, 0, 0},
@@ -3130,6 +3198,23 @@ func TestMinUint32(t *testing.T) {
 	}
 }
 
+func TestClampUint32(t *testing.T) {
+	tests := []struct{ v, lo, hi, e uint32 }{
+		{0, 0, 0, 0},
+		{5, 10, 20, 10},
+		{10, 10, 20, 10},
+		{15, 10, 20, 15},
+		{20, 10, 20, 20},
+		{25, 10, 20, 20},
+	}
+
+	for _, test := range tests {
+		if g, e := ClampUint32(test.v, test.lo, test.hi), test.e; g != e {
+			t.Fatal(test.v, test.lo, test.hi, g, e)
+		}
+	}
+}
+
 func TestMaxUint64(t *testing.T) {
 	tests := []struct{ a, b, e uint64 }{
 		{0, 0, 0},
@@ -3174,6 +3259,23 @@ func TestMinUint64(t *testing.T) {
 	for _, test := range tests {
 		if g, e := MinUint64(test.a, test.b), test.e; g != e {
 			t.Fatal(test.a, test.b, g, e)
+		}
+	}
+}
+
+func TestClampUint64(t *testing.T) {
+	tests := []struct{ v, lo, hi, e uint64 }{
+		{0, 0, 0, 0},
+		{5, 10, 20, 10},
+		{10, 10, 20, 10},
+		{15, 10, 20, 15},
+		{20, 10, 20, 20},
+		{25, 10, 20, 20},
+	}
+
+	for _, test := range tests {
+		if g, e := ClampUint64(test.v, test.lo, test.hi), test.e; g != e {
+			t.Fatal(test.v, test.lo, test.hi, g, e)
 		}
 	}
 }
@@ -3238,6 +3340,23 @@ func TestMinInt8(t *testing.T) {
 	}
 }
 
+func TestClampInt8(t *testing.T) {
+	tests := []struct{ v, lo, hi, e int8 }{
+		{0, 0, 0, 0},
+		{5, 10, 20, 10},
+		{10, 10, 20, 10},
+		{15, 10, 20, 15},
+		{20, 10, 20, 20},
+		{25, 10, 20, 20},
+	}
+
+	for _, test := range tests {
+		if g, e := ClampInt8(test.v, test.lo, test.hi), test.e; g != e {
+			t.Fatal(test.v, test.lo, test.hi, g, e)
+		}
+	}
+}
+
 func TestMaxInt16(t *testing.T) {
 	tests := []struct{ a, b, e int16 }{
 		{math.MinInt16, math.MinInt16, math.MinInt16},
@@ -3294,6 +3413,23 @@ func TestMinInt16(t *testing.T) {
 	for _, test := range tests {
 		if g, e := MinInt16(test.a, test.b), test.e; g != e {
 			t.Fatal(test.a, test.b, g, e)
+		}
+	}
+}
+
+func TestClampInt16(t *testing.T) {
+	tests := []struct{ v, lo, hi, e int16 }{
+		{0, 0, 0, 0},
+		{5, 10, 20, 10},
+		{10, 10, 20, 10},
+		{15, 10, 20, 15},
+		{20, 10, 20, 20},
+		{25, 10, 20, 20},
+	}
+
+	for _, test := range tests {
+		if g, e := ClampInt16(test.v, test.lo, test.hi), test.e; g != e {
+			t.Fatal(test.v, test.lo, test.hi, g, e)
 		}
 	}
 }
@@ -3358,6 +3494,23 @@ func TestMinInt32(t *testing.T) {
 	}
 }
 
+func TestClampInt32(t *testing.T) {
+	tests := []struct{ v, lo, hi, e int32 }{
+		{0, 0, 0, 0},
+		{5, 10, 20, 10},
+		{10, 10, 20, 10},
+		{15, 10, 20, 15},
+		{20, 10, 20, 20},
+		{25, 10, 20, 20},
+	}
+
+	for _, test := range tests {
+		if g, e := ClampInt32(test.v, test.lo, test.hi), test.e; g != e {
+			t.Fatal(test.v, test.lo, test.hi, g, e)
+		}
+	}
+}
+
 func TestMaxInt64(t *testing.T) {
 	tests := []struct{ a, b, e int64 }{
 		{math.MinInt64, math.MinInt64, math.MinInt64},
@@ -3414,6 +3567,23 @@ func TestMinInt64(t *testing.T) {
 	for _, test := range tests {
 		if g, e := MinInt64(test.a, test.b), test.e; g != e {
 			t.Fatal(test.a, test.b, g, e)
+		}
+	}
+}
+
+func TestClampInt64(t *testing.T) {
+	tests := []struct{ v, lo, hi, e int64 }{
+		{0, 0, 0, 0},
+		{5, 10, 20, 10},
+		{10, 10, 20, 10},
+		{15, 10, 20, 15},
+		{20, 10, 20, 20},
+		{25, 10, 20, 20},
+	}
+
+	for _, test := range tests {
+		if g, e := ClampInt64(test.v, test.lo, test.hi), test.e; g != e {
+			t.Fatal(test.v, test.lo, test.hi, g, e)
 		}
 	}
 }

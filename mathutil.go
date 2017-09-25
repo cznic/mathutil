@@ -631,6 +631,11 @@ func Min(a, b int) int {
 	return b
 }
 
+// Clamp returns a value restricted between lo and hi.
+func Clamp(v, lo, hi int) int {
+	return Min(Max(v, lo), hi)
+}
+
 // UMax returns the larger of a and b.
 func UMax(a, b uint) uint {
 	if a > b {
@@ -647,6 +652,11 @@ func UMin(a, b uint) uint {
 	}
 
 	return b
+}
+
+// UClamp returns a value restricted between lo and hi.
+func UClamp(v, lo, hi uint) uint {
+	return UMin(UMax(v, lo), hi)
 }
 
 // MaxByte returns the larger of a and b.
@@ -667,6 +677,11 @@ func MinByte(a, b byte) byte {
 	return b
 }
 
+// ClampByte returns a value restricted between lo and hi.
+func ClampByte(v, lo, hi byte) byte {
+	return MinByte(MaxByte(v, lo), hi)
+}
+
 // MaxInt8 returns the larger of a and b.
 func MaxInt8(a, b int8) int8 {
 	if a > b {
@@ -683,6 +698,11 @@ func MinInt8(a, b int8) int8 {
 	}
 
 	return b
+}
+
+// ClampInt8 returns a value restricted between lo and hi.
+func ClampInt8(v, lo, hi int8) int8 {
+	return MinInt8(MaxInt8(v, lo), hi)
 }
 
 // MaxUint16 returns the larger of a and b.
@@ -703,6 +723,11 @@ func MinUint16(a, b uint16) uint16 {
 	return b
 }
 
+// ClampUint16 returns a value restricted between lo and hi.
+func ClampUint16(v, lo, hi uint16) uint16 {
+	return MinUint16(MaxUint16(v, lo), hi)
+}
+
 // MaxInt16 returns the larger of a and b.
 func MaxInt16(a, b int16) int16 {
 	if a > b {
@@ -719,6 +744,11 @@ func MinInt16(a, b int16) int16 {
 	}
 
 	return b
+}
+
+// ClampInt16 returns a value restricted between lo and hi.
+func ClampInt16(v, lo, hi int16) int16 {
+	return MinInt16(MaxInt16(v, lo), hi)
 }
 
 // MaxUint32 returns the larger of a and b.
@@ -739,6 +769,11 @@ func MinUint32(a, b uint32) uint32 {
 	return b
 }
 
+// ClampUint32 returns a value restricted between lo and hi.
+func ClampUint32(v, lo, hi uint32) uint32 {
+	return MinUint32(MaxUint32(v, lo), hi)
+}
+
 // MaxInt32 returns the larger of a and b.
 func MaxInt32(a, b int32) int32 {
 	if a > b {
@@ -755,6 +790,11 @@ func MinInt32(a, b int32) int32 {
 	}
 
 	return b
+}
+
+// ClampInt32 returns a value restricted between lo and hi.
+func ClampInt32(v, lo, hi int32) int32 {
+	return MinInt32(MaxInt32(v, lo), hi)
 }
 
 // MaxUint64 returns the larger of a and b.
@@ -775,6 +815,11 @@ func MinUint64(a, b uint64) uint64 {
 	return b
 }
 
+// ClampUint64 returns a value restricted between lo and hi.
+func ClampUint64(v, lo, hi uint64) uint64 {
+	return MinUint64(MaxUint64(v, lo), hi)
+}
+
 // MaxInt64 returns the larger of a and b.
 func MaxInt64(a, b int64) int64 {
 	if a > b {
@@ -791,6 +836,11 @@ func MinInt64(a, b int64) int64 {
 	}
 
 	return b
+}
+
+// ClampInt64 returns a value restricted between lo and hi.
+func ClampInt64(v, lo, hi int64) int64 {
+	return MinInt64(MaxInt64(v, lo), hi)
 }
 
 // ToBase produces n in base b. For example
