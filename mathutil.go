@@ -7,6 +7,13 @@
 //
 // Release history and compatibility issues
 //
+// 2017-10-14: New variadic functions for Max/Min. Ex:
+//  func MaxVal(val int, vals ...int) int {
+//  func MinVal(val int, vals ...int) int {
+//  func MaxByteVal(val byte, vals ...byte) byte {
+//  func MinByteVal(val byte, vals ...byte) byte {
+//  ...
+//
 // 2016-10-10: New functions QuadPolyDiscriminant and QuadPolyFactors.
 //
 // 2013-12-13: The following functions have been REMOVED
@@ -631,6 +638,28 @@ func Min(a, b int) int {
 	return b
 }
 
+// MaxVal returns the largest argument passed.
+func MaxVal(val int, vals ...int) int {
+	res := val
+	for _, v := range vals {
+		if v > res {
+			res = v
+		}
+	}
+	return res
+}
+
+// MinVal returns the smallest argument passed.
+func MinVal(val int, vals ...int) int {
+	res := val
+	for _, v := range vals {
+		if v < res {
+			res = v
+		}
+	}
+	return res
+}
+
 // Clamp returns a value restricted between lo and hi.
 func Clamp(v, lo, hi int) int {
 	return Min(Max(v, lo), hi)
@@ -652,6 +681,28 @@ func UMin(a, b uint) uint {
 	}
 
 	return b
+}
+
+// UMaxVal returns the largest argument passed.
+func UMaxVal(val uint, vals ...uint) uint {
+	res := val
+	for _, v := range vals {
+		if v > res {
+			res = v
+		}
+	}
+	return res
+}
+
+// UMinVal returns the smallest argument passed.
+func UMinVal(val uint, vals ...uint) uint {
+	res := val
+	for _, v := range vals {
+		if v < res {
+			res = v
+		}
+	}
+	return res
 }
 
 // UClamp returns a value restricted between lo and hi.
@@ -677,6 +728,28 @@ func MinByte(a, b byte) byte {
 	return b
 }
 
+// MaxByteVal returns the largest argument passed.
+func MaxByteVal(val byte, vals ...byte) byte {
+	res := val
+	for _, v := range vals {
+		if v > res {
+			res = v
+		}
+	}
+	return res
+}
+
+// MinByteVal returns the smallest argument passed.
+func MinByteVal(val byte, vals ...byte) byte {
+	res := val
+	for _, v := range vals {
+		if v < res {
+			res = v
+		}
+	}
+	return res
+}
+
 // ClampByte returns a value restricted between lo and hi.
 func ClampByte(v, lo, hi byte) byte {
 	return MinByte(MaxByte(v, lo), hi)
@@ -698,6 +771,28 @@ func MinInt8(a, b int8) int8 {
 	}
 
 	return b
+}
+
+// MaxInt8Val returns the largest argument passed.
+func MaxInt8Val(val int8, vals ...int8) int8 {
+	res := val
+	for _, v := range vals {
+		if v > res {
+			res = v
+		}
+	}
+	return res
+}
+
+// MinInt8Val returns the smallest argument passed.
+func MinInt8Val(val int8, vals ...int8) int8 {
+	res := val
+	for _, v := range vals {
+		if v < res {
+			res = v
+		}
+	}
+	return res
 }
 
 // ClampInt8 returns a value restricted between lo and hi.
@@ -723,6 +818,28 @@ func MinUint16(a, b uint16) uint16 {
 	return b
 }
 
+// MaxUint16Val returns the largest argument passed.
+func MaxUint16Val(val uint16, vals ...uint16) uint16 {
+	res := val
+	for _, v := range vals {
+		if v > res {
+			res = v
+		}
+	}
+	return res
+}
+
+// MinUint16Val returns the smallest argument passed.
+func MinUint16Val(val uint16, vals ...uint16) uint16 {
+	res := val
+	for _, v := range vals {
+		if v < res {
+			res = v
+		}
+	}
+	return res
+}
+
 // ClampUint16 returns a value restricted between lo and hi.
 func ClampUint16(v, lo, hi uint16) uint16 {
 	return MinUint16(MaxUint16(v, lo), hi)
@@ -744,6 +861,28 @@ func MinInt16(a, b int16) int16 {
 	}
 
 	return b
+}
+
+// MaxInt16Val returns the largest argument passed.
+func MaxInt16Val(val int16, vals ...int16) int16 {
+	res := val
+	for _, v := range vals {
+		if v > res {
+			res = v
+		}
+	}
+	return res
+}
+
+// MinInt16Val returns the smallest argument passed.
+func MinInt16Val(val int16, vals ...int16) int16 {
+	res := val
+	for _, v := range vals {
+		if v < res {
+			res = v
+		}
+	}
+	return res
 }
 
 // ClampInt16 returns a value restricted between lo and hi.
@@ -769,6 +908,28 @@ func MinUint32(a, b uint32) uint32 {
 	return b
 }
 
+// MaxUint32Val returns the largest argument passed.
+func MaxUint32Val(val uint32, vals ...uint32) uint32 {
+	res := val
+	for _, v := range vals {
+		if v > res {
+			res = v
+		}
+	}
+	return res
+}
+
+// MinUint32Val returns the smallest argument passed.
+func MinUint32Val(val uint32, vals ...uint32) uint32 {
+	res := val
+	for _, v := range vals {
+		if v < res {
+			res = v
+		}
+	}
+	return res
+}
+
 // ClampUint32 returns a value restricted between lo and hi.
 func ClampUint32(v, lo, hi uint32) uint32 {
 	return MinUint32(MaxUint32(v, lo), hi)
@@ -790,6 +951,28 @@ func MinInt32(a, b int32) int32 {
 	}
 
 	return b
+}
+
+// MaxInt32Val returns the largest argument passed.
+func MaxInt32Val(val int32, vals ...int32) int32 {
+	res := val
+	for _, v := range vals {
+		if v > res {
+			res = v
+		}
+	}
+	return res
+}
+
+// MinInt32Val returns the smallest argument passed.
+func MinInt32Val(val int32, vals ...int32) int32 {
+	res := val
+	for _, v := range vals {
+		if v < res {
+			res = v
+		}
+	}
+	return res
 }
 
 // ClampInt32 returns a value restricted between lo and hi.
@@ -815,6 +998,28 @@ func MinUint64(a, b uint64) uint64 {
 	return b
 }
 
+// MaxUint64Val returns the largest argument passed.
+func MaxUint64Val(val uint64, vals ...uint64) uint64 {
+	res := val
+	for _, v := range vals {
+		if v > res {
+			res = v
+		}
+	}
+	return res
+}
+
+// MinUint64Val returns the smallest argument passed.
+func MinUint64Val(val uint64, vals ...uint64) uint64 {
+	res := val
+	for _, v := range vals {
+		if v < res {
+			res = v
+		}
+	}
+	return res
+}
+
 // ClampUint64 returns a value restricted between lo and hi.
 func ClampUint64(v, lo, hi uint64) uint64 {
 	return MinUint64(MaxUint64(v, lo), hi)
@@ -836,6 +1041,28 @@ func MinInt64(a, b int64) int64 {
 	}
 
 	return b
+}
+
+// MaxInt64Val returns the largest argument passed.
+func MaxInt64Val(val int64, vals ...int64) int64 {
+	res := val
+	for _, v := range vals {
+		if v > res {
+			res = v
+		}
+	}
+	return res
+}
+
+// MinInt64Val returns the smallest argument passed.
+func MinInt64Val(val int64, vals ...int64) int64 {
+	res := val
+	for _, v := range vals {
+		if v < res {
+			res = v
+		}
+	}
+	return res
 }
 
 // ClampInt64 returns a value restricted between lo and hi.
