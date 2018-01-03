@@ -90,10 +90,11 @@ var Knowns = []uint32{
 	43112609, // #47
 	57885161, // #48
 	74207281, // #49
+	77232917, // #50
 }
 
 // Known maps the exponent of known Mersenne primes its ordinal number/rank.
-// Ranks > 41 are currently provisional.
+// Ranks > 45 are currently provisional.
 var Known map[uint32]int
 
 func init() {
