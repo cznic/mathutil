@@ -144,7 +144,7 @@ func (x Int128) Sign() int {
 		return -1
 	}
 
-	if x.Hi != 0 && x.Lo != 0 {
+	if x.Hi != 0 || x.Lo != 0 {
 		return 1
 	}
 
