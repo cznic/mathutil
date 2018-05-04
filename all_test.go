@@ -5172,6 +5172,51 @@ func poly(a ...int) string {
 	return b.String()
 }
 
+func polyBig(a ...*big.Int) string {
+	var b bytes.Buffer
+	for i, v := range a {
+		p := len(a) - i - 1
+		if v.Sign() == 0 && p != 0 {
+			continue
+		}
+
+		if v.Sign() == 0 && p == 0 && b.Len() != 0 {
+			continue
+		}
+
+		if av := bigAbs(v); av.Cmp(_1) == 0 && p != 0 {
+			if b.Len() != 0 {
+				if v.Cmp(_1) == 0 {
+					b.WriteByte('+')
+				} else {
+					b.WriteByte('-')
+				}
+			} else if v.Cmp(_m1) == 0 {
+				b.WriteByte('-')
+			}
+		} else {
+			switch {
+			case b.Len() == 0:
+				fmt.Fprintf(&b, "%d", v)
+			default:
+				fmt.Fprintf(&b, "%+d", v)
+			}
+		}
+
+		if p == 0 {
+			continue
+		}
+
+		if p == 1 {
+			fmt.Fprintf(&b, "x")
+			continue
+		}
+
+		fmt.Fprintf(&b, "x^%d", p)
+	}
+	return b.String()
+}
+
 func polyK(k int) string {
 	switch {
 	case k == -1:
@@ -5180,6 +5225,150 @@ func polyK(k int) string {
 		return ""
 	default:
 		return fmt.Sprint(k)
+	}
+}
+
+func polyKBig(k *big.Int) string {
+	switch {
+	case k.Cmp(_m1) == 0:
+		return "-"
+	case k.Cmp(_1) == 0:
+		return ""
+	default:
+		return fmt.Sprint(k)
+	}
+}
+
+func TestQuadPolyDiscriminantBig(t *testing.T) {
+	for i, test := range []struct {
+		a, b, c, ds, d int
+	}{
+		{-1, -5, 6, 49, 7},
+		{-1, 5, 6, 49, 7},
+		{1, -5, -6, 49, 7},
+		{1, 5, -6, 49, 7},
+		{1, 5, 6, 1, 1},
+		{2, 3, 5, -31, -1},
+		{2, 7, 3, 25, 5},
+		{3, 8, 5, 4, 2},
+		{3, 9, 5, 21, -1},
+		{4, 5, 1, 9, 3},
+		{5, 3, 2, -31, -1},
+	} {
+		ds, d := QuadPolyDiscriminantBig(big.NewInt(int64(test.a)), big.NewInt(int64(test.b)), big.NewInt(int64(test.c)))
+		if g, e := ds, big.NewInt(int64(test.ds)); g.Cmp(e) != 0 {
+			t.Fatal(i, g, e)
+		}
+
+		switch {
+		case test.d < 0:
+			if d != nil {
+				t.Fatal(i, d, nil)
+			}
+		default:
+			if g, e := d, big.NewInt(int64(test.d)); g.Cmp(e) != 0 {
+				t.Fatal(i, g, e)
+			}
+		}
+	}
+}
+
+func testQuadPolyFactorsBig(t *testing.T, p1, q1, p2, q2, k *big.Int, cases int) {
+	a := bigMul(k, bigMul(p1, p2))
+	b := bigMul(k, bigAdd(bigMul(p1, q2), bigMul(q1, p2)))
+	c := bigMul(k, bigMul(q1, q2))
+	con, f := QuadPolyFactorsBig(a, b, c)
+
+	switch {
+	case a.Sign() == 0:
+		if g, e := len(f), 1; g != e {
+			t.Fatalf(
+				"%d: %s(%s)(%s) = %s -> got %v factors, expected %v",
+				cases, polyKBig(k), polyBig(p1, q1), polyBig(p2, q2), polyBig(a, b, c),
+				g, e,
+			)
+		}
+
+		a2 := big.NewInt(0)
+		b2 := bigMul(con, f[0].P)
+		c2 := bigMul(con, f[0].Q)
+		if a.Cmp(a2) != 0 || b.Cmp(b2) != 0 || c.Cmp(c2) != 0 {
+			t.Fatalf(
+				"%d: %s(%s)(%s) = %s -> %s(%s) = %s",
+				cases, polyKBig(k), polyBig(p1, q1), polyBig(p2, q2), polyBig(a, b, c),
+				polyKBig(con), polyBig(f[0].P, f[0].Q), polyBig(a2, b2, c2),
+			)
+		}
+
+		t.Logf(
+			"%d: %s(%s)(%s) = %s -> %s(%s) = %s",
+			cases, polyKBig(k), polyBig(p1, q1), polyBig(p2, q2), polyBig(a, b, c),
+			polyKBig(con), polyBig(f[0].P, f[0].Q), polyBig(a2, b2, c2),
+		)
+	default:
+		if g, e := len(f), 2; g != e {
+			t.Fatalf(
+				"%d: %s(%s)(%s) = %s -> got %v factors, expected %v",
+				cases, polyKBig(k), polyBig(p1, q1), polyBig(p2, q2), polyBig(a, b, c),
+				g, e,
+			)
+		}
+
+		a2 := bigMul(con, bigMul(f[0].P, f[1].P))
+		b2 := bigMul(con, bigAdd(bigMul(f[0].P, f[1].Q), bigMul(f[0].Q, f[1].P)))
+		c2 := bigMul(con, bigMul(f[0].Q, f[1].Q))
+		if a.Cmp(a2) != 0 || b.Cmp(b2) != 0 || c.Cmp(c2) != 0 {
+			t.Fatalf(
+				"%d: %s(%s)(%s) = %s -> %s(%s)(%s) = %s",
+				cases, polyKBig(k), polyBig(p1, q1), polyBig(p2, q2), polyBig(a, b, c),
+				polyKBig(con), polyBig(f[0].P, f[0].Q), polyBig(f[1].P, f[1].Q), polyBig(a2, b2, c2),
+			)
+		}
+
+		t.Logf(
+			"%d: %s(%s)(%s) = %s -> %s(%s)(%s) = %s",
+			cases, polyKBig(k), polyBig(p1, q1), polyBig(p2, q2), polyBig(a, b, c),
+			polyKBig(con), polyBig(f[0].P, f[0].Q), polyBig(f[1].P, f[1].Q), polyBig(a2, b2, c2),
+		)
+	}
+}
+
+func TestQuadPolyFactorsBig(t *testing.T) {
+	cases := 0
+
+	const N = 1e4
+	rng := rand.New(rand.NewSource(42))
+	for i := 0; i < N; i++ {
+		p1 := big.NewInt(rng.Int63())
+		q1 := big.NewInt(rng.Int63())
+		p2 := big.NewInt(rng.Int63())
+		q2 := big.NewInt(rng.Int63())
+		k := big.NewInt(rng.Int63())
+		testQuadPolyFactorsBig(t, p1, q1, p2, q2, k, cases)
+		cases++
+	}
+
+	cons := []int{-1, 1}
+	const lim = 7
+	for p1 := -lim; p1 <= lim; p1++ {
+		for q1 := -lim; q1 <= lim; q1++ {
+			for p2 := -lim; p2 <= lim; p2++ {
+				for q2 := -lim; q2 <= lim; q2++ {
+					for _, k := range cons {
+						testQuadPolyFactorsBig(
+							t,
+							big.NewInt(int64(p1)),
+							big.NewInt(int64(q1)),
+							big.NewInt(int64(p2)),
+							big.NewInt(int64(q2)),
+							big.NewInt(int64(k)),
+							cases,
+						)
+						cases++
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -5266,7 +5455,6 @@ func testQuadPolyFactors(t *testing.T, p1, q1, p2, q2, k, cases int) {
 		b2 := con * (f[0].P*f[1].Q + f[0].Q*f[1].P)
 		c2 := con * f[0].Q * f[1].Q
 		if a != a2 || b != b2 || c != c2 {
-			dbg("", con, f)
 			t.Fatalf(
 				"%d: %s(%s)(%s) = %s -> %s(%s)(%s) = %s",
 				cases, polyK(k), poly(p1, q1), poly(p2, q2), poly(a, b, c),
