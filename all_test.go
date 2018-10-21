@@ -832,7 +832,7 @@ func TestFactorInt(t *testing.T) {
 
 		x := uint64(1)
 		for _, v := range f {
-			if p := v.Prime; p < 0 || !IsPrime(uint32(v.Prime)) {
+			if p := v.Prime; p < 0 || !IsPrime(v.Prime) {
 				return false
 			}
 
@@ -2273,7 +2273,7 @@ func BenchmarkProbablyPrimeBigInt64(b *testing.B) {
 		for a <= 1 {
 			a = uint64(r.Next().Int64())
 		}
-		data[i] = t{big.NewInt(0).SetUint64(n), big.NewInt(0).SetUint64(uint64(a))}
+		data[i] = t{big.NewInt(0).SetUint64(n), big.NewInt(0).SetUint64(a)}
 	}
 	runtime.GC()
 	b.StartTimer()
